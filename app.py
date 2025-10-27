@@ -49,15 +49,33 @@ def create_app():
                         self._cur = cur
 
                     def execute(self, query, params=None):
-                        if params is None:
-                            return self._cur.execute(query)
-                        # Simple placeholder translation: replace SQLite '?' with psycopg2 '%s'
-                        q = query.replace('?', '%s')
-                        return self._cur.execute(q, params)
+                        try:
+                            if params is None:
+                                return self._cur.execute(query)
+                            # Simple placeholder translation: replace SQLite '?' with psycopg2 '%s'
+                            q = query.replace('?', '%s')
+                            return self._cur.execute(q, params)
+                        except Exception:
+                            # Ensure the transaction is rolled back to avoid "current transaction is aborted"
+                            try:
+                                # psycopg2 cursor has a .connection attribute
+                                if hasattr(self._cur, 'connection') and self._cur.connection is not None:
+                                    self._cur.connection.rollback()
+                            except Exception:
+                                pass
+                            raise
 
                     def executemany(self, query, seq_of_params):
-                        q = query.replace('?', '%s')
-                        return self._cur.executemany(q, seq_of_params)
+                        try:
+                            q = query.replace('?', '%s')
+                            return self._cur.executemany(q, seq_of_params)
+                        except Exception:
+                            try:
+                                if hasattr(self._cur, 'connection') and self._cur.connection is not None:
+                                    self._cur.connection.rollback()
+                            except Exception:
+                                pass
+                            raise
 
                     def fetchone(self):
                         return self._cur.fetchone()
