@@ -40,11 +40,44 @@ def create_app():
 
             def cursor(self):
                 self._ensure()
-                return self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+                real_cur = self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+                # Wrap the real cursor so that code written for sqlite (using '?' placeholders)
+                # continues to work with psycopg2 which expects '%s' placeholders.
+                class CursorWrapper:
+                    def __init__(self, cur):
+                        self._cur = cur
+
+                    def execute(self, query, params=None):
+                        if params is None:
+                            return self._cur.execute(query)
+                        # Simple placeholder translation: replace SQLite '?' with psycopg2 '%s'
+                        q = query.replace('?', '%s')
+                        return self._cur.execute(q, params)
+
+                    def executemany(self, query, seq_of_params):
+                        q = query.replace('?', '%s')
+                        return self._cur.executemany(q, seq_of_params)
+
+                    def fetchone(self):
+                        return self._cur.fetchone()
+
+                    def fetchall(self):
+                        return self._cur.fetchall()
+
+                    def __getattr__(self, name):
+                        # Delegate attribute access to the real cursor for others like close()
+                        return getattr(self._cur, name)
+
+                return CursorWrapper(real_cur)
 
             def commit(self):
                 if self._conn:
                     return self._conn.commit()
+
+            def rollback(self):
+                if self._conn:
+                    return self._conn.rollback()
 
             def close(self):
                 if self._conn:
