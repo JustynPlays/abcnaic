@@ -37,6 +37,13 @@ def create_app():
             def _ensure(self):
                 if self._conn is None:
                     self._conn = psycopg2.connect(self._dsn)
+                    # Default to autocommit to more closely match sqlite's simple usage pattern
+                    # and avoid "current transaction is aborted" states persisting across
+                    # multiple cursor calls when exception handling is not exhaustive.
+                    try:
+                        self._conn.autocommit = True
+                    except Exception:
+                        pass
 
             def cursor(self):
                 self._ensure()
