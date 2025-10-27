@@ -85,10 +85,83 @@ def create_app():
                             raise
 
                     def fetchone(self):
-                        return self._cur.fetchone()
+                        row = self._cur.fetchone()
+                        if row is None:
+                            return None
+                        # If psycopg2 RealDictCursor returns a dict-like row, wrap it so
+                        # code that expects sqlite3.Row-style access by integer index
+                        # (e.g. row[0]) or by column name (row['col']) continues to work.
+                        if isinstance(row, dict):
+                            col_names = [d[0] for d in (self._cur.description or [])]
+
+                            class RowWrapper:
+                                def __init__(self, data, cols):
+                                    self._data = data
+                                    self._cols = cols
+                                    # Prepare values in column order for index access
+                                    self._values = [self._data.get(c) for c in self._cols]
+
+                                def __getitem__(self, key):
+                                    if isinstance(key, int):
+                                        return self._values[key]
+                                    return self._data.get(key)
+
+                                def get(self, key, default=None):
+                                    return self._data.get(key, default)
+
+                                def keys(self):
+                                    return list(self._data.keys())
+
+                                def items(self):
+                                    return self._data.items()
+
+                                def as_dict(self):
+                                    return dict(self._data)
+
+                                def __repr__(self):
+                                    return f"RowWrapper({self._data})"
+
+                            return RowWrapper(row, col_names)
+
+                        return row
 
                     def fetchall(self):
-                        return self._cur.fetchall()
+                        rows = self._cur.fetchall()
+                        if not rows:
+                            return rows
+                        # If rows are dict-like, wrap each one similarly to fetchone
+                        if isinstance(rows[0], dict):
+                            col_names = [d[0] for d in (self._cur.description or [])]
+
+                            class RowWrapper:
+                                def __init__(self, data, cols):
+                                    self._data = data
+                                    self._cols = cols
+                                    self._values = [self._data.get(c) for c in self._cols]
+
+                                def __getitem__(self, key):
+                                    if isinstance(key, int):
+                                        return self._values[key]
+                                    return self._data.get(key)
+
+                                def get(self, key, default=None):
+                                    return self._data.get(key, default)
+
+                                def keys(self):
+                                    return list(self._data.keys())
+
+                                def items(self):
+                                    return self._data.items()
+
+                                def as_dict(self):
+                                    return dict(self._data)
+
+                                def __repr__(self):
+                                    return f"RowWrapper({self._data})"
+
+                            return [RowWrapper(r, col_names) for r in rows]
+
+                        return rows
 
                     def __getattr__(self, name):
                         # Delegate attribute access to the real cursor for others like close()
