@@ -15,7 +15,30 @@ from utils.sms_service import SMSService, send_appointment_reminder, send_appoin
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = os.urandom(24)
+    # Use a persistent secret key from the environment in production (Heroku).
+    # Falling back to a random key is fine for local development but will
+    # invalidate sessions across worker restarts and different processes.
+    secret = os.environ.get('FLASK_SECRET_KEY')
+    if secret:
+        app.secret_key = secret
+    else:
+        app.secret_key = os.urandom(24)
+
+    # Behind a proxy (Heroku router), Flask needs ProxyFix so it can honor
+    # X-Forwarded-Proto and other headers. This ensures secure cookies are
+    # marked correctly when the original request used HTTPS.
+    try:
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+    except Exception:
+        pass
+
+    # Session cookie settings: secure and httpOnly help with production safety.
+    # SESSION_COOKIE_SECURE should be True in production so cookies are only
+    # sent over HTTPS. Flask will still work if it's False in local dev.
+    app.config.setdefault('SESSION_COOKIE_SECURE', True)
+    app.config.setdefault('SESSION_COOKIE_HTTPONLY', True)
+    app.config.setdefault('SESSION_COOKIE_SAMESITE', 'Lax')
     # Database setup
     DATABASE_URL = os.environ.get('DATABASE_URL')
     if DATABASE_URL:
