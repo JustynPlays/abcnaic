@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Care Animal Bite Center</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#A52A2A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DrCare ABC">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/sw.js" as="script">
+    <link rel="modulepreload" href="/static/sw.js">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .bg-maroon {
+            background-color: #A52A2A;
+        }
+        .hero-bg {
+            background: url('/static/icons/background.png') 80% 65% / cover no-repeat;
+            min-height: 50vh;
+        }
+        .text-maroon {
+            color: #A52A2A;
+        }
+        /* PWA specific styles */
+        .pwa-install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #A52A2A;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .hero-bg {
+                min-height: 40vh;
+            }
+            .hero-text h1 {
+                font-size: 2rem !important;
+            }
+            .hero-text p {
+                font-size: 0.9rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <header class="bg-red-800 text-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <a href="#" class="flex items-center space-x-2 sm:space-x-3">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
+                    <img src="/static/icons/Logo 1.png" alt="Dr. Care Logo" class="h-full w-auto">
+                </div>
+                <span class="font-bold text-lg sm:text-xl tracking-tight">Dr. Care Animal Bite Center Naic</span>
+            </a>
+            
+            <!-- Mobile menu button -->
+            <div class="md:hidden">
+                <button type="button" class="mobile-menu-button p-2 rounded-md text-white hover:bg-red-700 focus:outline-none">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                <a href="#" class="hover:text-red-200 transition-colors">Home</a>
+                <a href="/faq" class="hover:text-red-200 transition-colors">FAQ</a>
+                <div class="flex items-center space-x-4 ml-2">
+                    <a href="/login" class="bg-white text-red-800 font-semibold py-2 px-4 sm:px-6 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base">Login</a>
+                    <span class="h-6 w-px bg-gray-400"></span>
+                    <a href="/register" class="bg-red-700 text-white font-semibold py-2 px-4 sm:px-6 rounded-lg hover:bg-red-600 transition-colors text-sm sm:text-base">Register</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu hidden md:hidden bg-red-800 py-2 px-4">
+            <a href="#" class="block py-2 px-4 text-sm hover:bg-red-700 rounded">Home</a>
+            <a href="/faq" class="block py-2 px-4 text-sm hover:bg-red-700 rounded">FAQ</a>
+            <div class="mt-2 pt-2 border-t border-red-700">
+                <a href="/login" class="block py-2 px-4 text-sm bg-white text-red-800 font-semibold rounded-lg mb-2 text-center">Login</a>
+                <a href="/register" class="block py-2 px-4 text-sm bg-red-700 text-white font-semibold rounded-lg border border-white text-center">Register</a>
+            </div>
+        </div>
+    </header>
+    
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-button').addEventListener('click', function() {
+            document.querySelector('.mobile-menu').classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                
+                // Handle Home link (scroll to top)
+                if (targetId === '#' || targetId === '#home') {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                    // Close mobile menu if open
+                    const mobileMenu = document.querySelector('.mobile-menu');
+                    if (mobileMenu) mobileMenu.classList.add('hidden');
+                    return;
+                }
+                
+                // Handle other section links
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // Close mobile menu if open
+                    const mobileMenu = document.querySelector('.mobile-menu');
+                    if (mobileMenu) mobileMenu.classList.add('hidden');
+                    
+                    // Calculate the position to scroll to (accounting for fixed header)
+                    const headerOffset = 80;
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    // Smooth scroll
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+    
+    <style>
+        /* Smooth scroll behavior for the whole page */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Add padding to sections to account for fixed header */
+        section {
+            scroll-margin-top: 100px;
+        }
+        
+        /* PWA Install Banner */
+        .pwa-install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #A52A2A;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .pwa-install-banner.show {
+            display: block;
+        }
+        
+        /* Mobile-first improvements */
+        @media (max-width: 640px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .grid.md\:grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .grid.md\:grid-cols-3 {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+
+    <!-- Hero Section -->
+    <section class="hero-bg">
+        <div class="bg-gray-200 bg-opacity-50 py-12 md:py-24">
+            <div class="container mx-auto text-center px-4 text-gray-800">
+                <p class="font-medium mb-2">Dr. Care Animal Bite Center Naic, in Naic Cavite</p>
+                <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 hero-text">
+                    "The cutest pet may still attack &ndash; <br class="hidden sm:block">get your shots and stay on track."
+                </h1>
+                <p class="max-w-2xl mx-auto text-sm sm:text-base mb-8 px-4 hero-text">
+                    Looking for reliable bite care in town? Our experienced medical team provides the urgent treatment and vaccine services you need&mdash;because your safety comes first.
+                </p>
+                <a href="#" class="bg-transparent border border-black text-black font-semibold py-3 px-8 sm:py-2 sm:px-6 rounded-md hover:bg-black hover:text-white transition-colors duration-300 text-sm sm:text-base">Book An Appointment</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Us Section -->
+    <section id="about" class="py-20 bg-gray-50">
+        <div class="container mx-auto text-center px-4">
+            <h2 class="text-3xl font-bold mb-3">About Us</h2>
+            <h3 class="text-xl font-semibold text-gray-800">No Rabies, No Worries!</h3>
+            <p class="text-gray-600 mb-6">Protect your family. Protect your health.</p>
+            <p class="max-w-3xl mx-auto text-gray-700 mb-8">
+                Your trusted partner in health and rabies prevention. We provide fast, affordable, and expert medical care for animal bites, scratches, and general health concerns. As we prioritize your health and safety with a team of trained professionals, we, the Dr.Care Animal Bite Center continue to prompt post-exposure treatment, education, and vaccination to help reduce the risk of rabies-related cases.
+            </p>
+            <div class="max-w-md mx-auto text-left bg-white p-6 rounded-lg shadow-md">
+                <ul class="space-y-3">
+                    <li class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-3"></i> Professional and trained medical team</li>
+                    <li class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-3"></i> Premium anti-rabies vaccination</li>
+                    <li class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-3"></i> Walk-in friendly &ndash; no long lines</li>
+                    <li class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-3"></i> Clean, accessible, and patient-first clinic</li>
+                    <li class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-3"></i> Open to all ages &ndash; from kids to seniors</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Us Section -->
+    <section id="contact" class="py-20 bg-white">
+        <div class="container mx-auto text-center px-4">
+            <h2 class="text-3xl font-bold mb-3">Contact Us</h2>
+            <p class="text-gray-600 mb-8">For More Info Kindly Call / Message Us.</p>
+            <div class="max-w-4xl mx-auto bg-gray-50 p-8 rounded-xl shadow-lg">
+                <div class="grid md:grid-cols-2 gap-x-8 gap-y-6 text-left text-gray-700">
+                    <div class="flex items-center"><i class="fas fa-phone-alt text-red-500 text-xl mr-4"></i> 0953 7207 342 / 0908 7029 139</div>
+                    <div class="flex items-center"><i class="fas fa-envelope text-red-500 text-xl mr-4"></i> drcareanimalbitecenternaic@gmail.com</div>
+                    <div class="flex items-center"><i class="fab fa-facebook-square text-blue-600 text-xl mr-4"></i> DR. CARE ANIMAL BITE CENTER - NAIC</div>
+                    <div class="flex items-start"><i class="fas fa-map-marker-alt text-red-500 text-xl mr-4 mt-1"></i> 2nd Floor Beside Palawan Express P. Poblete St. Bgy. Gomez- Zamora Naic, Cavite (Near Naic Town Plaza)</div>
+                    <div>
+                        <div class="flex items-center mb-2"><i class="fas fa-clock text-gray-700 text-xl mr-4"></i> <strong class="font-semibold">Operating Hours:</strong></div>
+                        <p class="ml-9">Monday - Friday : 7 A.M to 5 P.M</p>
+                        <p class="ml-9">Saturday - Sunday : 8 A.M to 4 P.M</p>
+                    </div>
+                    <div>
+                        <div class="flex items-center mb-2"><i class="fas fa-exclamation-circle text-red-600 text-xl mr-4"></i> <strong class="font-semibold">For Emergency Cases please Call:</strong></div>
+                        <p class="ml-9">0953 720 7342</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 bg-gray-50">
+        <div class="container mx-auto text-center px-4">
+            <h2 class="text-3xl font-bold mb-12">Services</h2>
+            <div class="grid md:grid-cols-3 gap-8 mb-10">
+                <div class="bg-white p-8 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                    <div class="w-24 h-24 mx-auto mb-5 bg-red-50 rounded-full flex items-center justify-center p-4">
+                        <img src="/static/icons/anti-rabies.png" alt="Anti-Rabies Vaccine" class="w-16 h-16">
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">Anti-Rabies Vaccine</h3>
+                    <p class="text-gray-600 text-sm">A life-saving injection that helps prevent rabies infection after exposure to the virus.</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                    <div class="w-24 h-24 mx-auto mb-5 bg-red-50 rounded-full flex items-center justify-center p-4">
+                        <img src="/static/icons/tetanus.png" alt="Tetanus Toxoid" class="w-16 h-16">
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">Tetanus Toxoid</h3>
+                    <p class="text-gray-600 text-sm">Stimulating the immune system to fight off infections caused by Clostridium tetani.</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                    <div class="w-24 h-24 mx-auto mb-5 bg-red-50 rounded-full flex items-center justify-center p-4">
+                        <img src="/static/icons/IREG.png" alt="IREG" class="w-16 h-16">
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">IREG</h3>
+                    <p class="text-gray-600 text-sm">ERIG (Equine Rabies Immunoglobulin) for patient who have bite/scratch on their Head/Face.</p>
+                </div>
+            </div>
+            <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+                <h3 class="font-bold text-lg mb-4">Other Services:</h3>
+                <ul class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-gray-700">
+                    <li>&bull; Wound Care</li>
+                    <li>&bull; Foley Catheter Insertion</li>
+                    <li>&bull; NGT Insertion</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="pwa-install-banner">
+        <div class="container mx-auto">
+            <p class="mb-2">Install Dr. Care app for offline access and quick booking!</p>
+            <div class="flex justify-center gap-4">
+                <button id="install-btn" class="bg-white text-red-800 px-6 py-2 rounded font-semibold">Install App</button>
+                <button id="dismiss-banner" class="text-white underline">Maybe Later</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-red-800 text-white shadow-md py-4">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm">&copy; 2025 Dr. Care Animal Bite Center Naic. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+        
+        // PWA Install Banner functionality
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwa-install-banner');
+        const installBtn = document.getElementById('install-btn');
+        const dismissBtn = document.getElementById('dismiss-banner');
+        
+        // Listen for the beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show banner after 5 seconds
+            setTimeout(() => {
+                if (installBanner) {
+                    installBanner.classList.add('show');
+                }
+            }, 5000);
+        });
+        
+        // Handle install button click
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    hideInstallBanner();
+                }
+            });
+        }
+        
+        // Handle dismiss button click
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                hideInstallBanner();
+            });
+        }
+        
+        function hideInstallBanner() {
+            if (installBanner) {
+                installBanner.classList.remove('show');
+            }
+        }
+        
+        // Hide banner when app is installed
+        window.addEventListener('appinstalled', () => {
+            hideInstallBanner();
+            console.log('PWA was installed');
+        });
+    </script>
+</body>
+</html>

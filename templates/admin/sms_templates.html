@@ -1,0 +1,49 @@
+{% extends "admin_base.html" %}
+
+{% block title %}SMS Templates{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <h1 class="h3 mb-4 text-gray-800">SMS Templates</h1>
+  <form method="post">
+    {% for key, tpl in templates.items() %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">{{ key }}</h5>
+        <div class="mb-2">
+          <label class="form-label">Title</label>
+          <input class="form-control" name="title_{{ key }}" value="{{ tpl.title }}">
+        </div>
+        <div>
+          <label class="form-label">Body (use {{ '{{appointment_date}}' }} etc)</label>
+          <textarea class="form-control" name="body_{{ key }}" rows="3">{{ tpl.body }}</textarea>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Add new template</h5>
+        <div class="mb-2">
+          <label class="form-label">Key (identifier, e.g., followup)</label>
+          <input class="form-control" name="new_key">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Title</label>
+          <input class="form-control" name="new_title">
+        </div>
+        <div>
+          <label class="form-label">Body</label>
+          <textarea class="form-control" name="new_body" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <button class="btn btn-primary" type="submit">Save Templates</button>
+      <a class="btn btn-secondary" href="{{ url_for('appointments.list_appointments') }}">Back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,306 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Dashboard - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <main class="col-12 px-4 py-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                <h1 class="welcome-header">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard Overview
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-download me-1"></i> Export
+                        </button>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-calendar3 me-1"></i> This Month
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li><a class="dropdown-item" href="#">Today</a></li>
+                            <li><a class="dropdown-item" href="#">This Week</a></li>
+                            <li><a class="dropdown-item" href="#">This Month</a></li>
+                            <li><a class="dropdown-item" href="#">This Year</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card h-100 stat-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="stat-label">TOTAL USERS</h6>
+                                    <h2 class="stat-number">{{ user_count }}</h2>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                                    <i class="bi bi-people-fill text-primary" style="font-size: 1.8rem;"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="text-success"><i class="bi bi-arrow-up"></i> 12% from last month</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 stat-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="stat-label">ACTIVE TODAY</h6>
+                                    <h2 class="stat-number">{{ active_today }}</h2>
+                                </div>
+                                <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                                    <i class="bi bi-activity text-success" style="font-size: 1.8rem;"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="text-success"><i class="bi bi-arrow-up"></i> 5% from yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 stat-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="stat-label">PENDING VERIFICATIONS</h6>
+                                    <h2 class="stat-number">{{ pending_verifications }}</h2>
+                                </div>
+                                <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                                    <i class="bi bi-shield-exclamation text-warning" style="font-size: 1.8rem;"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <a href="{{ url_for('admin_users') }}" class="text-decoration-none">
+                                    View all <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mb-4">
+                        <div class="card-header bg-white border-0 pt-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-users me-2"></i>Recent Users
+                                </h5>
+                                <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View All
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Status</th>
+                                            <th>Joined</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in recent_users %}
+                                        <tr>
+                                            <td>{{ user['name'] }}</td>
+                                            <td>{{ user['email'] }}</td>
+                                            <td>
+                                                {% if user['is_verified'] %}
+                                                    <span class="badge bg-success">Verified</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ user['created_at'].split('T')[0] if user['created_at'] else 'N/A' }}</td>
+                                            <td>
+                                                <a href="{{ url_for('admin_view_user', user_id=user['id']) }}" class="btn btn-sm btn-info" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center">No users found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-white border-0 pt-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-history me-2"></i>Recent Activity
+                                </h5>
+                                <a href="#" class="btn btn-sm btn-outline-primary" id="refreshActivity">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for activity in recent_activities %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    {% if activity['activity_type'] == 'login' %}
+                                                        <i class="fas fa-sign-in-alt text-success"></i>
+                                                    {% elif activity['activity_type'] == 'register' %}
+                                                        <i class="fas fa-user-plus text-primary"></i>
+                                                    {% elif activity['activity_type'] == 'logout' %}
+                                                        <i class="fas fa-sign-out-alt text-danger"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-info-circle text-info"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        {{ activity['name'] }} <small class="text-muted">{{ activity['email'] }}</small>
+                                                    </h6>
+                                                    <p class="mb-0 text-muted">
+                                                        {{ activity['activity_type']|title }}
+                                                        {% if activity['ip_address'] %}
+                                                            <span class="ms-2"><i class="fas fa-globe"></i> {{ activity['ip_address'] }}</span>
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">{{ activity['activity_time'].split('.')[0] }}</small>
+                                            {% if activity['user_agent'] %}
+                                            <div class="mt-1">
+                                                <small class="text-muted" data-bs-toggle="tooltip" title="{{ activity['user_agent'] }}">
+                                                    <i class="fas fa-info-circle"></i> Device Info
+                                                </small>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="text-center p-4">
+                                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No recent activity</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Toggle sidebar on mobile
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('active');
+    document.querySelector('.main-content').classList.toggle('active');
+}
+
+// Initialize tooltips and refresh button
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+    
+    // Refresh activity button
+    document.getElementById('refreshActivity')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        const icon = this.querySelector('i');
+        icon.classList.add('fa-spin');
+        
+        // Simulate refresh (in a real app, this would be an AJAX call)
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    });
+});
+
+// Format timestamps with timeago
+function formatTimestamps() {
+    const timeElements = document.querySelectorAll('.time-ago');
+    timeElements.forEach(el => {
+        const timestamp = el.getAttribute('data-timestamp');
+        if (timestamp) {
+            el.textContent = timeAgo(new Date(timestamp));
+        }
+    });
+}
+
+// Simple time ago function
+function timeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval > 1) return interval + ' years ago';
+    if (interval === 1) return '1 year ago';
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) return interval + ' months ago';
+    if (interval === 1) return '1 month ago';
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) return interval + ' days ago';
+    if (interval === 1) return '1 day ago';
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) return interval + ' hours ago';
+    if (interval === 1) return '1 hour ago';
+    
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) return interval + ' minutes ago';
+    if (interval === 1) return '1 minute ago';
+    
+    return 'just now';
+}
+
+// Initialize time formatting when the page loads
+document.addEventListener('DOMContentLoaded', formatTimestamps);
+</script>
+{% endblock %}

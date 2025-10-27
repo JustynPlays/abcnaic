@@ -1,0 +1,332 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ 'Edit' if item else 'Add' }} Inventory Item - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ 'Edit' if item else 'Add New' }} Inventory Item</h1>
+        <a href="{{ url_for('inventory.inventory_items') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Inventory
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Basic Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle"></i> Basic Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="itemForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label required">Item Name</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ item.name if item else '' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="category_id" class="form-label required">Category</label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="">Select a category</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" 
+                                            {% if item and item.category_id == category.id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                     rows="2">{{ item.description if item else '' }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label required">Current Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" 
+                                       value="{{ item.quantity if item else 0 }}" min="0" step="1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="unit" class="form-label required">Unit</label>
+                                <select class="form-select" id="unit" name="unit" required>
+                                    <option value="">Select unit</option>
+                                    {% for unit in units %}
+                                    <option value="{{ unit }}" 
+                                            {% if item and item.unit == unit %}selected{% endif %}>
+                                        {{ unit|title }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="min_quantity" class="form-label">Minimum Quantity</label>
+                                <input type="number" class="form-control" id="min_quantity" name="min_quantity" 
+                                       value="{{ item.min_quantity if item and item.min_quantity is not none else '' }}" 
+                                       min="0" step="1">
+                                <div class="form-text">Leave empty to disable low stock alerts</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Additional Details Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle"></i> Additional Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Storage Location</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       value="{{ item.location if item else '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lot_number" class="form-label">Lot/Batch Number</label>
+                                <input type="text" class="form-control" id="lot_number" name="lot_number" 
+                                       value="{{ item.lot_number if item else '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="expiration_date" class="form-label">Expiration Date</label>
+                                <input type="date" class="form-control" id="expiration_date" name="expiration_date" 
+                                       value="{{ item.expiration_date if item and item.expiration_date else '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="max_quantity" class="form-label">Maximum Quantity</label>
+                                <input type="number" class="form-control" id="max_quantity" name="max_quantity" 
+                                       value="{{ item.max_quantity if item and item.max_quantity is not none else '' }}" 
+                                       min="0" step="1">
+                                <div class="form-text">Leave empty for no maximum</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="supplier_info" class="form-label">Supplier Information</label>
+                        <input type="text" class="form-control" id="supplier_info" name="supplier_info" 
+                               value="{{ item.supplier_info if item else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ item.notes if item else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Actions Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-cog"></i> Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" form="itemForm" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> {{ 'Update' if item else 'Save' }} Item
+                        </button>
+                        
+                        {% if item %}
+                        <a href="{{ url_for('inventory.record_inventory_transaction') }}?item_id={{ item.id }}&type=in" 
+                           class="btn btn-success">
+                            <i class="fas fa-plus"></i> Add Stock
+                        </a>
+                        
+                        <a href="{{ url_for('inventory.record_inventory_transaction') }}?item_id={{ item.id }}&type=out" 
+                           class="btn btn-warning">
+                            <i class="fas fa-minus"></i> Remove Stock
+                        </a>
+                        
+                        <a href="{{ url_for('inventory.inventory_transactions') }}?item_id={{ item.id }}" 
+                           class="btn btn-info">
+                            <i class="fas fa-history"></i> View Transactions
+                        </a>
+                        
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash"></i> Delete Item
+                        </button>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('inventory.inventory_items') }}" class="btn btn-secondary mt-3">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stock Status Card -->
+            {% if item %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie"></i> Stock Status
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <span class="display-4 font-weight-bold">{{ item.quantity }}</span>
+                            <span class="text-muted">{{ item.unit }}</span>
+                        </div>
+                        
+                        {% if item.min_quantity is not none and item.min_quantity > 0 %}
+                        <div class="progress mb-3" style="height: 20px;">
+                            {% set percentage = (item.quantity / (item.max_quantity if item.max_quantity and item.max_quantity > item.min_quantity else item.min_quantity * 2)) * 100 %}
+                            {% set percentage = [100, percentage]|min %}
+                            <div class="progress-bar {% if item.quantity <= item.min_quantity %}bg-danger{% elif item.quantity <= item.min_quantity * 1.5 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ percentage }}%" 
+                                 aria-valuenow="{{ percentage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ percentage|int }}%
+                            </div>
+                        </div>
+                        
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Min
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ item.min_quantity }}
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Current
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ item.quantity }}
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    {% if item.max_quantity %}
+                                        Max
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ item.max_quantity if item.max_quantity else '-' }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if item %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this inventory item? This action cannot be undone.</p>
+                <p class="fw-bold">{{ item.name }}</p>
+                <p class="text-muted">
+                    <i class="fas fa-box"></i> {{ item.quantity }} {{ item.unit }} in stock
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <form action="{{ url_for('inventory.delete_inventory_item', item_id=item.id) }}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Permanently
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.getElementById('itemForm');
+        
+        form.addEventListener('submit', function(event) {
+            let valid = true;
+            
+            // Reset validation
+            document.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            
+            // Validate required fields
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    valid = false;
+                }
+            });
+            
+            // Validate quantity
+            const quantity = document.getElementById('quantity');
+            if (quantity && quantity.value < 0) {
+                quantity.classList.add('is-invalid');
+                valid = false;
+            }
+            
+            if (!valid) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Scroll to first invalid field
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+        
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Upload Document - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back to User Button -->
+    <div class="mb-4">
+        <a href="{{ url_for('documents.user_documents', user_id=user.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to User Documents
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Upload Document for {{ user.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('documents.upload_document', user_id=user.id) }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="document" class="form-label">Select PDF Document</label>
+                            <input class="form-control" type="file" id="document" name="document" accept=".pdf" required>
+                            <div class="form-text">Only PDF files are accepted. Maximum file size: 10MB</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Enter a brief description of this document"></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('documents.user_documents', user_id=user.id) }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Upload Document
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Client-side validation for file size (10MB limit)
+    document.getElementById('document').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB');
+            this.value = ''; // Clear the file input
+        }
+    });
+</script>
+{% endblock %}

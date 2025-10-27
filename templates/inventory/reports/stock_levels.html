@@ -1,0 +1,314 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Inventory Stock Levels Report - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Inventory Stock Levels Report</h1>
+        <div>
+            <a href="{{ url_for('inventory.inventory_reports', type='expiring_soon') }}" class="btn btn-sm btn-warning me-2">
+                <i class="fas fa-clock"></i> Expiring Soon
+            </a>
+            <a href="{{ url_for('inventory.inventory_reports', type='usage') }}" class="btn btn-sm btn-info me-2">
+                <i class="fas fa-chart-line"></i> Usage Report
+            </a>
+            <button class="btn btn-sm btn-primary" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+        </div>
+    </div>
+    
+    <!-- Report Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter"></i> Report Filters
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.args.get('category')|int == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Stock Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="low" {% if request.args.get('status') == 'low' %}selected{% endif %}>Low Stock</option>
+                        <option value="ok" {% if request.args.get('status') == 'ok' %}selected{% endif %}>In Stock</option>
+                        <option value="overstock" {% if request.args.get('status') == 'overstock' %}selected{% endif %}>Overstocked</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div>
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <a href="{{ url_for('inventory.inventory_reports', type='stock_levels') }}" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Stock Levels Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-boxes"></i> Current Stock Levels
+                <small class="text-muted ms-2">({{ items|length }} items)</small>
+            </h6>
+            <div>
+                <a href="{{ url_for('inventory.inventory_dashboard') }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if items %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th class="text-end">In Stock</th>
+                            <th class="text-end">Min Level</th>
+                            <th class="text-end">Max Level</th>
+                            <th>Status</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('inventory.manage_inventory_item', item_id=item.id) }}" class="text-primary">
+                                    {{ item.name }}
+                                </a>
+                                {% if item.lot_number %}
+                                <div class="small text-muted">Lot: {{ item.lot_number }}</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.category }}</td>
+                            <td class="text-end">{{ item.quantity }} {{ item.unit }}</td>
+                            <td class="text-end">{{ item.min_quantity if item.min_quantity is not none else '-' }}</td>
+                            <td class="text-end">{{ item.max_quantity if item.max_quantity is not none else '-' }}</td>
+                            <td>
+                                {% if item.status == 'danger' %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-circle"></i> Low Stock
+                                </span>
+                                {% elif item.status == 'warning' %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-exclamation-triangle"></i> Below Par
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> In Stock
+                                </span>
+                                {% endif %}
+                                
+                                {% if item.expiration_date %}
+                                    {% set exp_date = item.expiration_date|string|datetimeformat('%Y-%m-%d') %}
+                                    {% set today = now().date() %}
+                                    {% set exp_days = (exp_date - today).days %}
+                                    
+                                    {% if exp_days < 0 %}
+                                        <div class="mt-1">
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-skull-crossbones"></i> Expired {{ -exp_days }} days ago
+                                            </span>
+                                        </div>
+                                    {% elif exp_days <= 30 %}
+                                        <div class="mt-1">
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-clock"></i> Expires in {{ exp_days }} days
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>{{ item.location or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-gray-400 mb-3"></i>
+                <h5>No inventory items found</h5>
+                <p class="text-muted">Try adjusting your filters or add new inventory items.</p>
+                <a href="{{ url_for('inventory.manage_inventory_item') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Item
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer small text-muted">
+            Report generated on {{ now()|datetimeformat('%Y-%m-%d %H:%M') }}
+        </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Items
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ items|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Low Stock Items
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ items|selectattr('status', 'equalto', 'danger')|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Below Par Stock
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ items|selectattr('status', 'equalto', 'warning')|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                In Stock Items
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ items|selectattr('status', 'equalto', 'success')|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Options -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-file-export"></i> Export Options
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-success" onclick="exportToCSV()">
+                    <i class="fas fa-file-csv"></i> Export to CSV
+                </button>
+                <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf"></i> Export to PDF
+                </button>
+                <button type="button" class="btn btn-info" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> Export to Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Page level plugins -->
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+
+<!-- Page level custom scripts -->
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#dataTable').DataTable({
+            "order": [[2, "asc"]], // Sort by quantity by default
+            "pageLength": 25,
+            "responsive": true,
+            "dom": '<"top"f>rt<"bottom"ilp><"clear">',
+            "language": {
+                "search": "Search items:",
+                "lengthMenu": "Show _MENU_ entries per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered from _MAX_ total entries)",
+                "zeroRecords": "No matching items found"
+            }
+        });
+    });
+    
+    // Export functions
+    function exportToCSV() {
+        // Implement CSV export
+        alert('Export to CSV functionality will be implemented here.');
+    }
+    
+    function exportToPDF() {
+        // Implement PDF export
+        alert('Export to PDF functionality will be implemented here.');
+    }
+    
+    function exportToExcel() {
+        // Implement Excel export
+        alert('Export to Excel functionality will be implemented here.');
+    }
+</script>
+{% endblock %}

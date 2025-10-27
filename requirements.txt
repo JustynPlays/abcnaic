@@ -1,0 +1,14 @@
+Flask
+Flask-Mail
+itsdangerous
+Werkzeug
+psycopg2-binary
+redis==5.3.1
+twilio==8.0.0
+phonenumbers==8.13.15
+
+# Required by Heroku for running the Flask app
+gunicorn
+
+# Migration helper dependencies
+SQLAlchemy>=1.4

@@ -1,0 +1,218 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Inventory Transactions - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Inventory Transactions</h1>
+        <a href="{{ url_for('inventory.record_inventory_transaction') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Record Transaction
+        </a>
+    </div>
+    
+    <!-- Filter Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+            <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="true" aria-controls="filtersCollapse">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse show" id="filtersCollapse">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="item_id" class="form-label">Item</label>
+                        <select class="form-select" id="item_id" name="item_id">
+                            <option value="">All Items</option>
+                            {% for item in items %}
+                            <option value="{{ item.id }}" {% if item.id == selected_item|int %}selected{% endif %}>
+                                {{ item.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="type" class="form-label">Transaction Type</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="">All Types</option>
+                            {% for type in transaction_types %}
+                            <option value="{{ type }}" {% if type == selected_type %}selected{% endif %}>
+                                {{ type|title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Apply
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transactions Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Transaction History</h6>
+            <div>
+                <a href="{{ url_for('inventory.inventory_reports', type='usage') }}" class="btn btn-sm btn-info">
+                    <i class="fas fa-chart-bar"></i> Usage Report
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Item</th>
+                            <th class="text-end">Quantity</th>
+                            <th>Type</th>
+                            <th>Reference</th>
+                            <th>Notes</th>
+                            <th>Recorded By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in transactions %}
+                        <tr>
+                            <td>{{ tx.created_at|datetimeformat('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('inventory.manage_inventory_item', item_id=tx.item_id) }}">
+                                    {{ tx.item_name }}
+                                </a>
+                            </td>
+                            <td class="text-end">
+                                {% if tx.transaction_type in ['in', 'returned'] %}
+                                    <span class="text-success">+{{ tx.quantity }} {{ tx.unit }}</span>
+                                {% elif tx.transaction_type in ['out', 'expired'] %}
+                                    <span class="text-danger">-{{ tx.quantity }} {{ tx.unit }}</span>
+                                {% else %}
+                                    {{ tx.quantity }} {{ tx.unit }}
+                                {% endif %}
+                                
+                                {% if tx.transaction_type == 'adjustment' %}
+                                    <div class="text-muted small">
+                                        {{ tx.previous_quantity }} → {{ tx.new_quantity }}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if tx.transaction_type in ['in', 'returned'] else 'danger' if tx.transaction_type in ['out', 'expired'] else 'info' }}">
+                                    {{ tx.transaction_type|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if tx.reference_type %}
+                                    <span class="badge bg-secondary">{{ tx.reference_type|title }}</span>
+                                    {% if tx.reference_id %}
+                                        #{{ tx.reference_id }}
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ tx.notes|truncate(30) if tx.notes else '-' }}</td>
+                            <td>{{ tx.created_by or 'System' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if total > per_page %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('inventory.inventory_transactions', page=page-1, item_id=selected_item, type=selected_type, start_date=start_date, end_date=end_date) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    
+                    {% for p in range(1, (total // per_page) + 2) %}
+                        {% if p == page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ p }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('inventory.inventory_transactions', page=p, item_id=selected_item, type=selected_type, start_date=start_date, end_date=end_date) }}">
+                                {{ p }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if page * per_page >= total %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('inventory.inventory_transactions', page=page+1, item_id=selected_item, type=selected_type, start_date=start_date, end_date=end_date) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-exchange-alt fa-3x text-gray-400 mb-3"></i>
+                <h5>No transactions found</h5>
+                <p class="text-muted">Record your first transaction to get started.</p>
+                <a href="{{ url_for('inventory.record_inventory_transaction') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Record Transaction
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Page level plugins -->
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+
+<!-- Page level custom scripts -->
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#dataTable').DataTable({
+            "order": [[0, "desc"]], // Sort by date descending by default
+            "pageLength": 25,
+            "responsive": true,
+            "dom": '<"top"f>rt<"bottom"ilp><"clear">',
+            "language": {
+                "search": "Search transactions:",
+                "lengthMenu": "Show _MENU_ entries per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered from _MAX_ total entries)",
+                "zeroRecords": "No matching transactions found"
+            }
+        });
+        
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert-dismissible').fadeOut('slow', function() {
+                $(this).remove();
+            });
+        }, 5000);
+    });
+</script>
+{% endblock %}

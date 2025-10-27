@@ -1,0 +1,108 @@
+<svg width="400" height="700" viewBox="0 0 400 700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .body-part {
+        fill: #fdd1a1; /* Light skin tone */
+        stroke: #a5522a; /* Darker outline */
+        stroke-width: 2;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+      .body-part:hover {
+        fill: #fbc28d; /* Slightly darker on hover */
+        stroke-width: 3;
+      }
+      .body-part.selected {
+        fill: #c41e3a; /* Theme red for selected */
+        stroke: #8b1020; /* Darker red stroke */
+        stroke-width: 3;
+      }
+      .label {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 12px;
+        fill: #333;
+        text-anchor: middle;
+        pointer-events: none;
+        font-weight: 500;
+      }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="700" fill="#f8f9fa"/>
+
+  <!-- Human-Like Body Diagram -->
+  <g id="human-body">
+    <!-- Head -->
+    <path id="head" class="body-part" data-part="head" d="M199.5,30 C174.6,30 155,54.6 155,80 C155,105.4 174.6,125 199.5,125 C224.4,125 244,105.4 244,80 C244,54.6 224.4,30 199.5,30 Z"/>
+    <text x="200" y="25" class="label">Head</text>
+
+    <!-- Neck -->
+    <path id="neck" class="body-part" data-part="neck" d="M185,123 C185,130 180,140 180,145 L220,145 C220,140 215,130 215,123 Z"/>
+    <text x="200" y="155" class="label">Neck</text>
+
+    <!-- Chest -->
+    <path id="chest" class="body-part" data-part="chest" d="M165,146 C140,160 130,200 145,220 C150,210 160,205 175,205 L225,205 C240,205 250,210 255,220 C270,200 260,160 235,146 C220,140 180,140 165,146 Z"/>
+    <text x="200" y="180" class="label">Chest</text>
+
+    <!-- Abdomen -->
+    <path id="abdomen" class="body-part" data-part="abdomen" d="M165,220 C140,230 130,270 145,300 C150,295 160,290 175,290 L225,290 C240,290 250,295 255,300 C270,270 260,230 235,220 C220,215 180,215 165,220 Z"/>
+    <text x="200" y="270" class="label">Abdomen</text>
+
+    <!-- Pelvis -->
+    <path id="pelvis" class="body-part" data-part="pelvis" d="M175,300 C155,300 140,320 145,340 C150,350 165,355 180,355 L220,355 C235,355 250,350 255,340 C260,320 245,300 225,300 Z"/>
+    <text x="200" y="330" class="label">Pelvis</text>
+
+    <!-- Left Upper Arm -->
+    <g id="left-arm">
+      <path id="left-upper-arm" class="body-part" data-part="left-upper-arm" d="M164,146 C150,155 120,175 110,235 C108,245 115,255 125,253 C135,250 145,195 160,155 Z"/>
+      <text x="90" y="195" class="label">Left Upper Arm</text>
+
+      <path id="left-forearm" class="body-part" data-part="left-forearm" d="M110,237 C100,275 95,315 105,345 L120,350 C130,315 125,275 125,253 Z"/>
+      <text x="75" y="295" class="label">Left Forearm</text>
+
+      <path id="left-hand" class="body-part" data-part="left-hand" d="M105,345 C90,355 85,375 95,395 C105,405 120,395 120,380 C120,365 115,350 105,345 Z"/>
+      <text x="85" y="380" class="label">Left Hand</text>
+    </g>
+
+    <!-- Right Upper Arm -->
+    <g id="right-arm">
+      <path id="right-upper-arm" class="body-part" data-part="right-upper-arm" d="M236,146 C250,155 280,175 290,235 C292,245 285,255 275,253 C265,250 255,195 240,155 Z"/>
+      <text x="310" y="195" class="label">Right Upper Arm</text>
+
+      <path id="right-forearm" class="body-part" data-part="right-forearm" d="M290,237 C300,275 305,315 295,345 L280,350 C270,315 275,275 275,253 Z"/>
+      <text x="325" y="295" class="label">Right Forearm</text>
+
+      <path id="right-hand" class="body-part" data-part="right-hand" d="M295,345 C310,355 315,375 305,395 C295,405 280,395 280,380 C280,365 285,350 295,345 Z"/>
+      <text x="315" y="380" class="label">Right Hand</text>
+    </g>
+
+    <!-- Left Thigh -->
+    <g id="left-leg">
+      <path id="left-thigh" class="body-part" data-part="left-thigh" d="M175,355 C160,360 145,410 150,460 L175,465 C180,410 185,360 175,355 Z"/>
+      <text x="130" y="410" class="label">Left Thigh</text>
+
+      <path id="left-lower-leg" class="body-part" data-part="left-lower-leg" d="M155,460 C150,500 155,550 165,580 L180,575 C175,550 170,500 175,465 Z"/>
+      <text x="130" y="520" class="label">Left Lower Leg</text>
+
+      <path id="left-foot" class="body-part" data-part="left-foot" d="M165,580 C155,590 155,610 170,615 C185,610 185,590 180,575 Z"/>
+      <text x="130" y="605" class="label">Left Foot</text>
+    </g>
+
+    <!-- Right Thigh -->
+    <g id="right-leg">
+      <path id="right-thigh" class="body-part" data-part="right-thigh" d="M225,355 C240,360 255,410 250,460 L225,465 C220,410 215,360 225,355 Z"/>
+      <text x="270" y="410" class="label">Right Thigh</text>
+
+      <path id="right-lower-leg" class="body-part" data-part="right-lower-leg" d="M245,460 C250,500 245,550 235,580 L220,575 C225,550 230,500 225,465 Z"/>
+      <text x="270" y="520" class="label">Right Lower Leg</text>
+
+      <path id="right-foot" class="body-part" data-part="right-foot" d="M235,580 C245,590 245,610 230,615 C215,610 215,590 220,575 Z"/>
+      <text x="270" y="605" class="label">Right Foot</text>
+    </g>
+  </g>
+
+  <!-- Instructions -->
+  <text x="200" y="650" class="label" style="font-size: 13px; fill: #666;">Click on specific body parts to select</text>
+  <text x="200" y="670" class="label" style="font-size: 11px; fill: #999;">More detailed areas available for precise selection</text>
+</svg>

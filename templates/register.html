@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Animal Bite Center Naic</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-red: #9A1B1B;
+            --brand-beige: #F7E9D5;
+            --text-dark: #2C2C2C;
+            --gold: #F6C453;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fff8f1;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Navigation */
+        .navbar {
+            background: var(--brand-red);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .navbar .nav-link { 
+            color: #fff !important; 
+            font-weight: 500;
+        }
+        
+        .brand-chip {
+            background: var(--brand-red);
+            color: #fff; 
+            padding: 0.4rem 0.75rem; 
+            border-radius: 999px; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem;
+            font-weight: 600;
+            border: 2px solid #fff;
+        }
+        
+        .brand-chip i { 
+            font-size: 1rem; 
+        }
+        
+        /* Form Styles */
+        .register-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            margin-top: 2rem;
+        }
+        
+        .register-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            padding: 2.5rem;
+        }
+        
+        .register-title {
+            color: var(--brand-red);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+        
+        .form-control {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--brand-red);
+            box-shadow: 0 0 0 0.25rem rgba(154, 27, 27, 0.15);
+        }
+        
+        .form-control.is-valid {
+            border-color: #198754;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73 1.4 1.02c.1.07.23.1.35.1s.25-.03.35-.1l4.2-3.1c.2-.15.24-.46.1-.66-.15-.2-.46-.24-.66-.1l-3.85 2.84-1.05-.76c-.2-.15-.46-.1-.66.1-.15.2-.1.46.1.66z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .btn-register {
+            background: var(--brand-red);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-register:hover {
+            background: #7a1515;
+            transform: translateY(-2px);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-dark);
+        }
+        
+        .login-link a {
+            color: var(--brand-red);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Flash Messages */
+        .flashes {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+        
+        .flashes li {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .flashes .error {
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+        }
+        
+        /* Hide form notes by default */
+        .form-text {
+            display: none;
+        }
+
+        /* Do not auto-show form notes via CSS; help text will be shown only when server indicates missing requirements */
+        .form-control.is-invalid + .form-text {
+            display: block;
+        }
+
+        /* Show help text when parent has focus-within */
+        .mb-3:focus-within .form-text.help-text {
+            opacity: 1;
+            max-height: 80px;
+            transform: translateY(0);
+            display: block;
+            margin-top: 0.5rem;
+        }
+
+        /* Custom help text styling */
+        .form-text.help-text {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transform: translateY(-10px);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            margin-top: 0;
+            /* Reduced size for less visual weight */
+            font-size: 0.75rem; /* ~12px */
+            line-height: 1.3;
+            word-wrap: break-word;
+        }
+
+        .form-text.help-text.show {
+            opacity: 1;
+            max-height: 80px;
+            transform: translateY(0);
+            display: block;
+            margin-top: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        /* Add a subtle glow effect when showing */
+        .form-text.help-text.show {
+            background: linear-gradient(135deg, rgba(165, 42, 42, 0.05), rgba(165, 42, 42, 0.02));
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            border-left: 3px solid #A52A2A;
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 768px) {
+            .form-text.help-text.show {
+                max-height: 100px;
+                font-size: 0.72rem;
+                padding: 0.5rem;
+            }
+
+            .register-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <img src="/static/icons/Logo 1.png" alt="Dr. Care Animal Bite Center Naic Logo" style="height: 48px; margin-right: 12px;">
+                <div class="brand-chip">
+                    <span>Dr. Care Animal Bite Center Naic</span>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <!-- No header/navbar as per design -->
+
+    <!-- Register Form -->
+    <div class="register-container">
+        <div class="register-card">
+            <h2 class="register-title">Create Account</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+            
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ first_name | default('') }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ last_name | default('') }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="username" name="username" value="{{ username | default('') }}" required>
+                    <div class="form-text help-text help-username">Choose a unique username (3-30 characters, letters, numbers, and underscores only)</div>
+                    <div id="username-feedback" class="invalid-feedback"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ email | default('') }}" required>
+                    <div id="email-feedback" class="invalid-feedback"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="form-text help-text help-password" id="password-help">
+                                {% if missing_passwords %}
+                                    <strong>Missing password requirements:</strong>
+                                    <ul style="margin:0.25rem 0 0 1rem; padding:0;">
+                                        {% for req in missing_passwords %}
+                                            <li>{{ req }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <!-- keep help text hidden until server indicates missing requirements -->
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="date_of_birth" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                            <div class="row gx-2 align-items-start">
+                                <div class="col-8">
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ date_of_birth | default('') }}" required
+                                        min="1900-01-01" max="2012-12-31">
+                                </div>
+                                <div class="col-4">
+                                    <input type="text" class="form-control" id="age_display" name="age_display" placeholder="Age" aria-label="Age" readonly>
+                                </div>
+                            </div>
+                            <div class="form-text help-text help-dob">You must be at least 13 years old to register</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="" disabled {% if not gender %}selected{% endif %}>Select Gender</option>
+                                <option value="male" {% if gender == 'male' %}selected{% endif %}>Male</option>
+                                <option value="female" {% if gender == 'female' %}selected{% endif %}>Female</option>
+                                <option value="other" {% if gender == 'other' %}selected{% endif %}>Prefer not to say</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="contact_number" class="form-label">Contact Number <span class="text-danger">*</span></label>
+                                        <input type="tel" 
+                                    class="form-control" 
+                                    id="contact_number" 
+                                    name="contact_number" 
+                  
+                                    pattern="09[0-9]{9}" 
+                                    value="{{ contact_number | default('') }}"
+                                    required>
+                                        <div id="contact-note" class="form-text text-danger" style="display:none; margin-top:0.25rem;">Please enter an 11-digit number starting with 09.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="address" class="form-label">Complete Address <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="address" name="address" rows="3" required>{{ address | default('') }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-register">Create Account</button>
+            </form>
+            
+            <p class="login-link">Already have an account? <a href="/login">Sign in</a></p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm_password');
+            const usernameInput = document.getElementById('username');
+            const usernameFeedback = document.getElementById('username-feedback');
+            const emailInput = document.getElementById('email');
+            const dobInput = document.getElementById('date_of_birth');
+            const ageDisplay = document.getElementById('age_display');
+            const contactInput = document.getElementById('contact_number');
+
+            // Help text elements
+            const helpTexts = {
+                'username': document.querySelector('.help-username'),
+                'email': document.querySelector('.help-email'),
+                'password': document.querySelector('.help-password'),
+                'dob': document.querySelector('.help-dob'),
+                'contact': document.querySelector('.help-contact')
+            };
+
+            // Function to show help text
+            function showHelpText(inputId) {
+                if (helpTexts[inputId]) {
+                    helpTexts[inputId].classList.add('show');
+                }
+            }
+
+            // Function to hide help text
+            function hideHelpText(inputId) {
+                if (helpTexts[inputId]) {
+                    helpTexts[inputId].classList.remove('show');
+                }
+            }
+
+            // Add focus and blur event listeners
+            if (usernameInput) {
+                usernameInput.addEventListener('focus', () => showHelpText('username'));
+                usernameInput.addEventListener('blur', () => hideHelpText('username'));
+            }
+
+            // Email help popup removed per UX request - keep inline feedback only
+
+            // Password help text will only be shown when the server returns missing requirements.
+
+            if (dobInput) {
+                dobInput.addEventListener('focus', () => showHelpText('dob'));
+                dobInput.addEventListener('blur', () => hideHelpText('dob'));
+            }
+
+            if (contactInput) {
+                // Prevent letters from being typed into the phone field
+                contactInput.addEventListener('input', function(e){
+                    const cleaned = this.value.replace(/[^0-9]/g, '');
+                    if (this.value !== cleaned) this.value = cleaned;
+                    // Hide note while typing
+                    const note = document.getElementById('contact-note');
+                    if (note) note.style.display = 'none';
+                });
+
+                // On blur, validate format and show note only if invalid
+                contactInput.addEventListener('blur', function(){
+                    const val = this.value.trim();
+                    const note = document.getElementById('contact-note');
+                    if (!/^09\d{9}$/.test(val)){
+                        if (note) note.style.display = 'block';
+                        this.classList.add('is-invalid');
+                    } else {
+                        if (note) note.style.display = 'none';
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
+            }
+
+            // Real-time password validation removed - server will validate on submit and return missing requirements.
+
+            // Password confirmation validation
+            confirmPasswordInput.addEventListener('input', function() {
+                const password = passwordInput.value;
+                const confirmPassword = this.value;
+
+                // Remove existing feedback classes
+                this.classList.remove('is-valid', 'is-invalid');
+
+                if (confirmPassword.length === 0) {
+                    return; // Don't show feedback for empty confirmation
+                }
+
+                if (password === confirmPassword) {
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.add('is-invalid');
+                }
+            });
+
+            // Username uniqueness validation
+            let usernameTimeout;
+            usernameInput.addEventListener('input', function() {
+                const username = this.value.trim();
+
+                // Clear previous feedback
+                this.classList.remove('is-valid', 'is-invalid');
+                usernameFeedback.textContent = '';
+
+                // Clear the timeout if user is still typing
+                clearTimeout(usernameTimeout);
+
+                // Don't check if username is empty or too short
+                if (username.length < 3) {
+                    return;
+                }
+
+                // Set a timeout to check username after user stops typing
+                usernameTimeout = setTimeout(() => {
+                    checkUsernameAvailability(username);
+                }, 500);
+            });
+
+            // Check username availability function
+            function checkUsernameAvailability(username) {
+                // Show loading state
+                usernameInput.classList.add('is-valid'); // Use valid class to show it's being checked
+                usernameFeedback.textContent = 'Checking availability...';
+
+                // Make AJAX request to check username availability
+                fetch('/check-username', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Remove loading state
+                    usernameInput.classList.remove('is-valid', 'is-invalid');
+
+                    if (data.available) {
+                        usernameInput.classList.add('is-valid');
+                        usernameFeedback.textContent = 'Username is available';
+                    } else {
+                        usernameInput.classList.add('is-invalid');
+                        usernameFeedback.textContent = 'Username is already taken';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking username:', error);
+                    usernameInput.classList.remove('is-valid', 'is-invalid');
+                    usernameFeedback.textContent = 'Error checking username availability';
+                });
+            }
+
+            // Email uniqueness validation (copied from username pattern)
+            let emailTimeout;
+            const emailFeedback = document.getElementById('email-feedback');
+
+            emailInput.addEventListener('input', function() {
+                const email = this.value.trim();
+
+                // Clear previous feedback
+                this.classList.remove('is-valid', 'is-invalid');
+                if (emailFeedback) emailFeedback.textContent = '';
+
+                // Clear the timeout if user is still typing
+                clearTimeout(emailTimeout);
+
+                // Don't check if email is too short
+                if (email.length < 5) {
+                    return;
+                }
+
+                // Set a timeout to check email after user stops typing
+                emailTimeout = setTimeout(() => {
+                    checkEmailAvailability(email);
+                }, 500);
+            });
+
+            function checkEmailAvailability(email) {
+                // Show loading state
+                emailInput.classList.add('is-valid');
+                if (emailFeedback) emailFeedback.textContent = 'Checking availability...';
+
+                // Make AJAX request to check email availability
+                fetch('/check-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Remove loading state
+                    emailInput.classList.remove('is-valid', 'is-invalid');
+
+                    if (data.available) {
+                        emailInput.classList.add('is-valid');
+                        if (emailFeedback) emailFeedback.textContent = 'Email is available';
+                    } else {
+                        emailInput.classList.add('is-invalid');
+                        if (emailFeedback) emailFeedback.textContent = 'Email is already registered';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking email:', error);
+                    emailInput.classList.remove('is-valid', 'is-invalid');
+                    if (emailFeedback) emailFeedback.textContent = 'Error checking email availability';
+                });
+            }
+
+            // Age calculation helper
+            function calculateAge(dob) {
+                if (!dob) return '';
+                const birth = new Date(dob);
+                if (isNaN(birth)) return '';
+                const today = new Date();
+                let age = today.getFullYear() - birth.getFullYear();
+                const m = today.getMonth() - birth.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+                    age--;
+                }
+                return age;
+            }
+
+            // Update age display when DOB changes or on load
+            function updateAgeDisplay() {
+                if (!ageDisplay || !dobInput) return;
+                const age = calculateAge(dobInput.value);
+                ageDisplay.value = age !== '' ? age : '';
+            }
+
+            if (dobInput) {
+                dobInput.addEventListener('change', updateAgeDisplay);
+                // initialize on load
+                updateAgeDisplay();
+            }
+
+            // Address minimum words validation (at least 3 words)
+            const addressInput = document.getElementById('address');
+            const registerForm = document.querySelector('form');
+            if (registerForm && addressInput) {
+                registerForm.addEventListener('submit', function(e) {
+                    const addressVal = addressInput.value.trim();
+                    // Count words (split by whitespace), ignoring extra spaces
+                    const words = addressVal.length ? addressVal.split(/\s+/) : [];
+                    if (words.length < 3) {
+                        e.preventDefault();
+                        addressInput.classList.add('is-invalid');
+                        // create or update invalid feedback
+                        let feedback = addressInput.parentElement.querySelector('.invalid-feedback');
+                        if (!feedback) {
+                            feedback = document.createElement('div');
+                            feedback.className = 'invalid-feedback';
+                            addressInput.parentElement.appendChild(feedback);
+                        }
+                        feedback.textContent = 'Please enter at least 3 words for the address.';
+                        addressInput.focus();
+                        return false;
+                    } else {
+                        addressInput.classList.remove('is-invalid');
+                    }
+                });
+            }
+
+            // client-side validatePasswordStrength removed intentionally
+            // If the server returned missing password requirements, reveal the help block
+            {% if missing_passwords %}
+                const pwdHelp = document.getElementById('password-help');
+                if (pwdHelp) pwdHelp.classList.add('show');
+                if (passwordInput) passwordInput.classList.add('is-invalid');
+                // Optionally focus password so user can fix it quickly
+                if (passwordInput) passwordInput.focus();
+            {% endif %}
+        });
+    </script>
+</html>

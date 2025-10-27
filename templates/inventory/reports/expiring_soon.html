@@ -1,0 +1,285 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Expiring Soon Report - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Expiring Soon Report</h1>
+        <div>
+            <a href="{{ url_for('inventory.inventory_reports', type='stock_levels') }}" class="btn btn-sm btn-primary me-2">
+                <i class="fas fa-boxes"></i> Stock Levels
+            </a>
+            <a href="{{ url_for('inventory.inventory_reports', type='usage') }}" class="btn btn-sm btn-info me-2">
+                <i class="fas fa-chart-line"></i> Usage Report
+            </a>
+            <button class="btn btn-sm btn-secondary" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+        </div>
+    </div>
+    
+    <!-- Report Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter"></i> Report Filters
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="days" class="form-label">Show items expiring in the next</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="days" name="days" 
+                               min="1" max="365" value="{{ days }}">
+                        <span class="input-group-text">days</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.args.get('category')|int == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div>
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <a href="{{ url_for('inventory.inventory_reports', type='expiring_soon') }}" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Expiring Items Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-clock"></i> Items Expiring in the Next {{ days }} Days
+                <small class="text-muted ms-2">({{ items|length }} items)</small>
+            </h6>
+            <div>
+                <a href="{{ url_for('inventory.inventory_dashboard') }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if items %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th class="text-end">In Stock</th>
+                            <th>Expiration Date</th>
+                            <th>Days Until Expiry</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('inventory.manage_inventory_item', item_id=item.id) }}" class="text-primary">
+                                    {{ item.name }}
+                                </a>
+                                {% if item.lot_number %}
+                                <div class="small text-muted">Lot: {{ item.lot_number }}</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.category }}</td>
+                            <td class="text-end">{{ item.quantity }} {{ item.unit }}</td>
+                            <td>{{ item.expiration_date|datetimeformat('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if item.days_until_expiry == 0 %}
+                                    <span class="badge bg-danger">Expires today</span>
+                                {% elif item.days_until_expiry < 0 %}
+                                    <span class="badge bg-dark">Expired {{ -item.days_until_expiry }} days ago</span>
+                                {% else %}
+                                    {{ item.days_until_expiry }} days
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.days_until_expiry < 0 %}
+                                    <span class="badge bg-danger">Expired</span>
+                                {% elif item.days_until_expiry == 0 %}
+                                    <span class="badge bg-danger">Expires Today</span>
+                                {% elif item.days_until_expiry <= 7 %}
+                                    <span class="badge bg-warning text-dark">Expires Soon</span>
+                                {% else %}
+                                    <span class="badge bg-info">Upcoming</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('inventory.manage_inventory_item', item_id=item.id) }}" 
+                                       class="btn btn-primary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{{ url_for('inventory.record_inventory_transaction') }}?item_id={{ item.id }}&type=out&reference_type=expired" 
+                                       class="btn btn-danger" title="Mark as Expired">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5>No expiring items found</h5>
+                <p class="text-muted">No items are set to expire in the next {{ days }} days.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer small text-muted">
+            Report generated on {{ now()|datetimeformat('%Y-%m-%d %H:%M') }}
+        </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="row">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Already Expired
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ items|selectattr('days_until_expiry', 'lt', 0)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Expiring in 7 Days
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ items|selectattr('days_until_expiry', 'ge', 0)|selectattr('days_until_expiry', 'le', 7)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Expiring in 30 Days
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ items|selectattr('days_until_expiry', 'gt', 7)|selectattr('days_until_expiry', 'le', 30)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Options -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-file-export"></i> Export Options
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-success" onclick="exportToCSV()">
+                    <i class="fas fa-file-csv"></i> Export to CSV
+                </button>
+                <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf"></i> Export to PDF
+                </button>
+                <button type="button" class="btn btn-info" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> Export to Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Page level plugins -->
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+
+<!-- Page level custom scripts -->
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#dataTable').DataTable({
+            "order": [[4, "asc"]], // Sort by days until expiry by default
+            "pageLength": 25,
+            "responsive": true,
+            "dom": '<"top"f>rt<"bottom"ilp><"clear">',
+            "language": {
+                "search": "Search items:",
+                "lengthMenu": "Show _MENU_ entries per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered from _MAX_ total entries)",
+                "zeroRecords": "No matching items found"
+            }
+        });
+    });
+    
+    // Export functions
+    function exportToCSV() {
+        // Implement CSV export
+        alert('Export to CSV functionality will be implemented here.');
+    }
+    
+    function exportToPDF() {
+        // Implement PDF export
+        alert('Export to PDF functionality will be implemented here.');
+    }
+    
+    function exportToExcel() {
+        // Implement Excel export
+        alert('Export to Excel functionality will be implemented here.');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,663 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Animal Bite Center Naic{% endblock %}</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#A52A2A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DrCare ABC">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/sw.js" as="script">
+    <link rel="modulepreload" href="/static/sw.js">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-bg: #2c3e50;
+            --text-light: #f8f9fa;
+            --text-dark: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --border-radius: 8px;
+            --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary-color), #1a252f);
+            min-height: 100vh;
+            color: white;
+            padding: 0;
+            position: fixed;
+            width: var(--sidebar-width);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.8rem 1.5rem;
+            margin: 0.2rem 1rem;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .sidebar .nav-link i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover, 
+        .sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            font-weight: 500;
+            background: var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .sidebar .nav-link.logout {
+            color: #ff6b6b;
+            margin-top: 1rem;
+        }
+
+        .sidebar .nav-link.logout:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-header h4 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar-header small {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 1.25rem 1.5rem;
+            min-height: 100vh;
+            background-color: #f5f7fb;
+        }
+
+        /* Constrain the inner content and center it to improve card alignment */
+        .content-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .welcome-header {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card .card-body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        /* Table Styles */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom-width: 1px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            padding: 1rem 1.5rem;
+            white-space: nowrap;
+        }
+
+        .table tbody td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            border-color: #f1f3f7;
+            color: #495057;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 0.45em 0.8em;
+            font-weight: 500;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-radius: 50px;
+        }
+
+        /* Button Styles */
+        .btn {
+            font-weight: 500;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #1a252f;
+            border-color: #1a252f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 62, 80, 0.15);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+
+        /* Alert Styles */
+        .alert {
+            border-radius: 8px;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .alert-dismissible .btn-close {
+            padding: 1rem;
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-align: center;
+            padding: 2.5rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(30deg);
+        }
+
+        .login-header i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(5px);
+        }
+
+        .login-header h3 {
+            margin: 0.5rem 0 0;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-body {
+            padding: 2.5rem 2rem;
+            background: white;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-right: none;
+            border-top-left-radius: 6px !important;
+            border-bottom-left-radius: 6px !important;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus + .input-group-text {
+            border-color: var(--secondary-color);
+            background-color: #f1f8ff;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767.98px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+            
+            .table-responsive {
+                border-radius: 8px;
+                border: 1px solid #f1f3f7;
+                margin-bottom: 1rem;
+            }
+            
+            .login-body {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .login-card {
+                margin: 0 1rem;
+            }
+            
+            .login-body {
+                padding: 1.5rem 1.25rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% include '_user_sidebar.html' %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show m-3" role="alert">
+                        <div class="d-flex align-items-center">
+                            {% if category == 'success' %}
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                            {% elif category == 'danger' %}
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {% elif category == 'warning' %}
+                                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                            {% endif %}
+                            <div>{{ message }}</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}
+    {% endblock %}
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Activate tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Add fade-in animation to elements with .fade-in class
+            document.querySelectorAll('.fade-in').forEach((element) => {
+                element.style.opacity = '0';
+                element.style.animation = 'fadeIn 0.5s ease-out forwards';
+                element.style.animationDelay = (element.dataset.delay || '0') + 'ms';
+            });
+        });
+    </script>
+    <script>
+        // Sidebar toggle for responsive behavior
+        function toggleNav() {
+            document.body.classList.toggle('sidebar-open');
+            var sidebar = document.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.toggle('show');
+        }
+
+        function closeNav() {
+            document.body.classList.remove('sidebar-open');
+            var sidebar = document.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.remove('show');
+        }
+
+        // Close sidebar when clicking outside of it on mobile
+        document.addEventListener('click', function(event) {
+            var sidebar = document.querySelector('.sidebar');
+            if (!sidebar) return;
+            if (sidebar.classList.contains('show') && !event.target.closest('.sidebar') && !event.target.closest('.menu-icon')) {
+                closeNav();
+            }
+        });
+    </script>
+    <script>
+        // Removed automatic sidebar opener to let toggleNav/closeNav behave normally.
+    </script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', function() {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', function() {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New update available
+                                    if (confirm('New version available! Click OK to refresh and use the latest version.')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+        
+        // PWA Install Banner functionality
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwa-install-banner');
+        const installBtn = document.getElementById('install-btn');
+        const dismissBtn = document.getElementById('dismiss-banner');
+        
+        // Listen for the beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show banner after 5 seconds
+            setTimeout(() => {
+                if (installBanner) {
+                    installBanner.classList.add('show');
+                }
+            }, 5000);
+        });
+        
+        // Handle install button click
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    hideInstallBanner();
+                }
+            });
+        }
+        
+        // Handle dismiss button click
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                hideInstallBanner();
+            });
+        }
+        
+        function hideInstallBanner() {
+            if (installBanner) {
+                installBanner.classList.remove('show');
+            }
+        }
+        
+        // Hide banner when app is installed
+        window.addEventListener('appinstalled', () => {
+            hideInstallBanner();
+            console.log('PWA was installed');
+        });
+    </script>
+</body>
+</html>

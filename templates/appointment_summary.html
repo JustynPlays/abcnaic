@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Summary - Dr. Care Animal Bite Center Naic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9fafb;
+        }
+        .sidebar-link {
+            transition: all 0.3s ease;
+        }
+        .sidebar-link.active {
+            background-color: #fce8e8;
+            color: #A52A2A;
+            border-right: 4px solid #A52A2A;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 sm:p-6">
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-6">
+            <a href="{{ url_for('home') }}" class="text-red-600 bg-white border-2 border-red-600 rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:bg-red-50 transition">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center">Book an Appointment</h1>
+            <div class="w-12"></div> <!-- Spacer for alignment -->
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Left Sidebar -->
+            <aside class="w-full md:w-1/4">
+                <div class="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                    <!-- Step 1: Type (faded on subsequent steps) -->
+                    <div class="flex items-center p-4 text-gray-500 rounded-lg cursor-default">
+                        <i class="fas fa-list-alt fa-fw mr-4"></i> Type
+                    </div>
+                    <!-- Completed Steps - Not clickable -->
+                    <div class="flex items-center p-4 text-gray-500 rounded-lg cursor-default">
+                        <i class="fas fa-pills fa-fw mr-4"></i> Services & Fees
+                    </div>
+                    <div class="flex items-center p-4 mt-2 text-gray-500 rounded-lg cursor-default">
+                        <i class="fas fa-calendar-alt fa-fw mr-4"></i> Date & Time
+                    </div>
+                    <div class="flex items-center p-4 mt-2 text-gray-500 rounded-lg cursor-default">
+                        <i class="fas fa-user-edit fa-fw mr-4"></i> Details
+                    </div>
+                    <!-- Current Step - Not clickable -->
+                    <div class="sidebar-link active flex items-center p-4 mt-2 text-gray-600 rounded-lg cursor-default">
+                        <i class="fas fa-clipboard-list fa-fw mr-4"></i> Summary
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Content -->
+            <main class="w-full md:w-3/4 bg-white p-8 rounded-lg shadow-md border border-gray-200">
+                <form action="{{ url_for('appointment_summary') }}" method="POST" id="bookingForm">
+                    <div class="text-center mb-8">
+                        <img src="/static/icons/summary.png" alt="Summary Illustration" class="w-40 h-auto mx-auto mb-4">
+                        <h2 class="text-3xl font-bold text-gray-800">Summary</h2>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Customer Details at the top -->
+                        <div class="flex justify-center">
+                            <div class="bg-gray-100 p-4 rounded-lg border border-gray-200 w-full md:w-1/2 text-center">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-700">Customer</h3>
+                                <p class="text-gray-800">{{ session.appointment_details.name if session.appointment_details else 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Animal Type</label>
+                                <p class="mt-1 p-3 bg-gray-50 border border-gray-300 rounded-md w-full">
+                                    {% if session.appointment_details.animal_etc_text %}
+                                        {{ session.appointment_details.animal_type | upper }} - {{ session.appointment_details.animal_etc_text }}
+                                    {% else %}
+                                        {{ session.appointment_details.animal_type | default('Not specified') | upper }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Selected Service</label>
+                                {# Compute the service string and optionally append a Vaccine Booster badge for Anti-Rabies #}
+                                {% set svc = (display_service if display_service else (session.appointment_details.service if session.appointment_details else '')) %}
+                                <p class="mt-1 p-3 bg-gray-50 border border-gray-300 rounded-md w-full">
+                                    {% if svc %}
+                                        {{ svc | upper }}
+                                        {% if svc|lower == 'anti-rabies vaccine' or 'anti-rabies' in svc|lower %}
+                                            <span class="inline-block ml-3 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-semibold">Booster Vaccine</span>
+                                        {% endif %}
+                                    {% else %}
+                                        {{ 'No service selected' | upper }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Bite Location -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Bite/Scratch Location</label>
+                            {% if session.appointment_details.bite_location %}
+                                <div class="mt-1 p-3 bg-gray-50 border border-gray-300 rounded-md w-full">
+                                    {% set bite_parts = session.appointment_details.bite_location.split(',') %}
+                                    {% for part in bite_parts %}
+                                        {% if part.strip() %}
+                                            <span class="inline-block bg-red-100 text-red-800 text-sm px-2 py-1 rounded-full mr-2 mb-1">
+                                                {{ part.strip().replace('-', ' ') | title }}
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-gray-600">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Exposure Type: <strong>{{ session.appointment_details.exposure_type | default('Not specified') | upper }}</strong>
+                                    </small>
+                                </div>
+                            {% else %}
+                                <p class="mt-1 p-3 bg-gray-50 border border-gray-300 rounded-md w-full">Not specified</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Subtotal at the bottom -->
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-medium text-gray-700">Total Amount Due:</span>
+                            <span class="text-2xl font-bold text-gray-900">{{ session.appointment_details.price if session.appointment_details else '₱0.00' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="flex justify-between items-center mt-10">
+                        <a href="{{ url_for('appointment_details') }}" class="text-gray-600 hover:text-gray-900 font-medium">
+                            <i class="fas fa-arrow-left mr-2"></i> Go Back
+                        </a>
+                        <button type="submit" class="bg-red-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-red-700 transition-colors" id="bookNowBtn">
+                            Book Now
+                        </button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookingForm = document.getElementById('bookingForm');
+            const bookNowBtn = document.getElementById('bookNowBtn');
+
+            if (bookingForm && bookNowBtn) {
+                bookingForm.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Prevent default form submission
+
+                    // Show loading state
+                    bookNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Booking...';
+                    bookNowBtn.disabled = true;
+
+                    // Submit the form programmatically
+                    const formData = new FormData(bookingForm);
+
+                    fetch(bookingForm.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Success - show success message
+                            bookNowBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Booked Successfully!';
+
+                            // Show success message overlay
+                            showSuccessMessage();
+                        } else {
+                            throw new Error('Booking failed');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Show error message
+                        alert('There was an error booking your appointment. Please try again.');
+                        // Reset button
+                        bookNowBtn.innerHTML = 'Book Now';
+                        bookNowBtn.disabled = false;
+                    });
+                });
+            }
+        });
+
+        function showSuccessMessage() {
+            // Create success overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'successOverlay';
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            overlay.innerHTML = `
+                <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-green-500 text-6xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Appointment Booked Successfully!</h2>
+                    <p class="text-gray-600 mb-6">Your appointment has been confirmed. You will receive a confirmation message shortly.</p>
+                    <div class="space-y-3">
+                        <a href="{{ url_for('my_bookings') }}" class="block w-full bg-red-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-calendar-check mr-2"></i>View My Bookings
+                        </a>
+                        <a href="{{ url_for('home') }}" class="block w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-home mr-2"></i>Go to Homepage
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            // Close overlay when clicking outside
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                }
+            });
+        }
+    </script>

@@ -1,0 +1,90 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Manage Services{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Manage Services</h1>
+        <a href="{{ url_for('services.manage_service') }}" class="btn btn-primary" style="background-color: #e84118; border-color: #e84118;">
+            <i class="fas fa-plus fa-sm"></i> Add New Service
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold" style="color: #e84118;">All Services</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Duration (Mins)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.name }}</td>
+                            <td>{{ service.category }}</td>
+                            <td>₱{{ "%.2f"|format(service.price) }}</td>
+                            <td>{{ service.duration_minutes }}</td>
+                            <td>
+                                {% if service.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('services.manage_service', service_id=service.id) }}" class="btn btn-sm btn-warning me-1">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-{{ service.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modals -->
+{% for service in services %}
+<div class="modal fade" id="deleteModal-{{ service.id }}" tabindex="-1" aria-labelledby="deleteModalLabel-{{ service.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel-{{ service.id }}">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the service "<strong>{{ service.name }}</strong>"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('services.delete_service', service_id=service.id) }}" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// You can add any specific JS for this page here, e.g., for DataTable initialization.
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{
+  "cancellation": {
+    "title": "Cancellation",
+    "body": "Your appointment on {{appointment_date}} at {{appointment_time}} has been cancelled. Please contact us to reschedule."
+  },
+  "reschedule": {
+    "title": "Reschedule",
+    "body": "Your appointment has been rescheduled to {{new_date}} at {{new_time}}. Please contact us if this does not work for you."
+  },
+  "reminder": {
+    "title": "Reminder",
+    "body": "Reminder: You have an appointment on {{appointment_date}} at {{appointment_time}}. Please arrive 10 minutes early."
+  }
+}

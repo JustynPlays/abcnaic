@@ -1,0 +1,66 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Upload PDF for {{ user.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Upload PDF for {{ user.name }}</h1>
+        <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to User
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Upload Document</h6>
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" enctype="multipart/form-data" action="{{ url_for('admin_upload_user_pdf', user_id=user.id) }}">
+                <div class="form-group">
+                    <label for="description">Document Description</label>
+                    <input type="text" class="form-control" id="description" name="description" 
+                           placeholder="E.g., Medical Report, Test Results, etc." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pdf_file">PDF File</label>
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="pdf_file" name="pdf_file" accept=".pdf" required>
+                        <label class="custom-file-label" for="pdf_file">Choose file</label>
+                    </div>
+                    <small class="form-text text-muted">Only PDF files are accepted. Maximum file size: 10MB</small>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Upload Document
+                    </button>
+                    <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Custom file input script -->
+<script>
+document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+    var fileName = document.getElementById("pdf_file").files[0].name;
+    var nextSibling = e.target.nextElementSibling;
+    nextSibling.innerText = fileName;
+});
+</script>
+{% endblock %}

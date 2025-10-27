@@ -1,0 +1,391 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f3f4f6; /* light gray like screenshot */
+    color: #111827; /* neutral dark text */
+}
+nav {
+    background: #b20000;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    flex-wrap: wrap;
+}
+nav .brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+nav .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 1.5rem;
+    font-weight: 500;
+}
+nav .nav-links a:hover {
+    text-decoration: underline;
+}
+.hero {
+    text-align: center;
+    margin-top: 5rem;
+    color: #b20000;
+}
+.hero .cta {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 0.75rem 2rem;
+    background: #b20000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.hero .cta:hover {
+    background: #900000;
+}
+.form-section {
+    max-width: 400px;
+    margin: 4rem auto;
+    background: #fff;
+    border: 1px solid #b20000;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(178,0,0,0.08);
+}
+.form-section h2 {
+    color: #b20000;
+    margin-bottom: 1.5rem;
+}
+.form-section label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #b20000;
+}
+.form-section input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid #b20000;
+    border-radius: 4px;
+}
+.form-section button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #b20000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.form-section button:hover {
+    background: #900000;
+}
+.flashes {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+.flashes .success {
+    color: #fff;
+    background: #b20000;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+.flashes .danger, .flashes .warning {
+    color: #b20000;
+    background: #fff0f0;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+footer {
+    background: #f8f8f8;
+    color: #b20000;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 3rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    nav .brand {
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+    nav .nav-links {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    nav .nav-links a {
+        margin: 0.5rem 0 0 0;
+    }
+    .form-section, .container {
+        max-width: 95vw;
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+    .hero {
+        margin-top: 2rem;
+        padding: 1rem;
+    }
+}
+@media (max-width: 400px) {
+    .form-section, .container {
+        padding: 0.5rem;
+    }
+    .hero h1 {
+        font-size: 1.2rem;
+    }
+    .hero .cta {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Layout utilities (minimal Tailwind-like helpers used in templates) */
+.container { max-width: 1100px; margin-left: auto; margin-right: auto; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.p-6 { padding: 1.5rem; }
+.p-8 { padding: 2rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mt-8 { margin-top: 2rem; }
+.pt-6 { padding-top: 1.5rem; }
+.border { border: 1px solid #e5e7eb; }
+.border-gray-200 { border-color: #e5e7eb; }
+.rounded-lg { border-radius: 12px; }
+.shadow-md { box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.gap-8 { gap: 2rem; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.w-full { width: 100%; }
+.bg-white { background: #ffffff; }
+.text-gray-800 { color: #1f2937; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-500 { color: #6b7280; }
+.text-center { text-align: center; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.ml-2 { margin-left: 0.5rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: 1fr; }
+.md\:grid-cols-2 { grid-template-columns: 1fr; }
+.mt-2 { margin-top: 0.5rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.bg-gray-100 { background: #f3f4f6; }
+.border-t { border-top: 1px solid #e5e7eb; }
+
+/* Responsive helpers */
+@media (min-width: 768px) {
+  .md\:flex-row { flex-direction: row; }
+  .md\:w-1\/4 { width: 25%; }
+  .md\:w-3\/4 { width: 75%; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Header title alignment */
+header h1 { margin: 0; }
+
+/* Sidebar styles to match screenshot */
+.sidebar-link { 
+  display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 10px; 
+  color: #6b7280; background: transparent; border: 1px solid transparent;
+}
+.sidebar-link.active { 
+  background: #fde8ea; /* light red */
+  color: #b20000;
+  border-color: #f1b5bd;
+  position: relative;
+}
+.sidebar-link.active::after {
+  content: ""; position: absolute; right: -1px; top: 10%; bottom: 10%; width: 6px; border-radius: 6px; background: #b20000;
+}
+
+/* Primary button (Next) */
+.bg-red-700 { background-color: #b20000; }
+.bg-red-700:hover { background-color: #8f0000; }
+.text-white { color: #ffffff; }
+.font-bold { font-weight: 700; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.rounded { border-radius: 8px; }
+.rounded-lg { border-radius: 12px; }
+.hover\:bg-red-800:hover { background-color: #8f0000; }
+
+/* Icon circle back button */
+.text-red-600 { color: #b20000; }
+.border-red-600 { border-color: #b20000; }
+.w-12 { width: 3rem; }
+.h-12 { height: 3rem; }
+.rounded-full { border-radius: 9999px; }
+.transition { transition: all 0.2s ease; }
+.hover\:bg-red-50:hover { background: #fff5f5; }
+
+/* Minor utilities used in templates */
+.mr-3 { margin-right: 0.75rem; }
+.text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+.w-12 { width: 3rem; }
+.h-12 { height: 3rem; }
+
+/* Minimal bootstrap-like helpers used by JS rendering */
+.d-flex { display: flex; }
+.justify-content-between { justify-content: space-between; }
+.align-items-center { align-items: center; }
+.bg-light { background: #f8f9fa; }
+.badge { display: inline-block; padding: 0.35em 0.6em; border-radius: 0.5rem; font-size: 0.85rem; }
+.bg-danger { background-color: #dc3545; color: #fff; }
+.btn { border: 1px solid #dc3545; color: #dc3545; background: #fff; cursor: pointer; }
+.btn-sm { padding: 0.15rem 0.35rem; font-size: 0.8rem; border-radius: 6px; }
+.btn-outline-danger { border-color: #dc3545; color: #dc3545; background: transparent; }
+.btn-outline-danger:hover { background: #dc3545; color: #fff; }
+
+/* Human-Like Body Diagram Styles */
+.body-diagram-container {
+    text-align: center;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    max-width: 900px;
+}
+
+.body-diagram-container h3 {
+    color: #b20000;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.body-diagram-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2.5rem;
+    margin-top: 1.5rem;
+}
+
+.body-diagram {
+    flex-shrink: 0;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.selected-parts {
+    min-width: 280px;
+    max-width: 320px;
+    text-align: left;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.selected-parts h4 {
+    color: #b20000;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+.clear-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 1rem;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.clear-button:hover {
+    background-color: #c82333;
+}
+
+.text-muted {
+    color: #6c757d;
+}
+
+/* Mobile responsiveness for human-like body diagram */
+@media (max-width: 768px) {
+    .body-diagram-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .body-diagram {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .selected-parts {
+        width: 100%;
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .body-diagram-container {
+        padding: 1.5rem;
+    }
+
+    .body-diagram-container h3 {
+        font-size: 1.3rem;
+    }
+}
+
+/* Remove unwanted white highlight on selected time slots
+   Many booking UIs use a checked radio input + label pattern. This rule
+   prevents the checked/focused radio label from switching to a white
+   background and removes outlines/box-shadow used by some components.
+   It is intentionally scoped broadly (radio + label) but kept minimal to
+   avoid affecting other UI elements. If your time-slot container uses a
+   different class (eg. .time-slots), the more specific selector can be
+   added there. */
+input[type="radio"]:checked + label,
+input[type="radio"]:focus + label,
+input[type="radio"]:active + label,
+.time-slots input[type="radio"]:checked + label,
+.time-slots input[type="radio"]:focus + label {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Also guard common slot classes if templates mark selected slots */
+.time-slot.selected,
+.time-slot:focus,
+.slot.selected,
+.slot:focus {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}

@@ -1,0 +1,150 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ 'Edit FAQ' if faq else 'Add New FAQ' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_faq') }}">FAQ Management</a></li>
+                    <li class="breadcrumb-item active">{{ 'Edit FAQ' if faq else 'Add New FAQ' }}</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">{{ 'Edit FAQ' if faq else 'Add New FAQ' }}</h1>
+                <a href="{{ url_for('admin_faq') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to FAQ List
+                </a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'danger' else 'warning' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="question" class="form-label">Question <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="question" name="question"
+                                           value="{{ faq.question if faq else '' }}" required
+                                           placeholder="Enter the FAQ question">
+                                    <div class="form-text">This will be displayed as the question in the FAQ section</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="answer" class="form-label">Answer <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="answer" name="answer" rows="6" required
+                                              placeholder="Enter the detailed answer">{{ faq.answer if faq else '' }}</textarea>
+                                    <div class="form-text">You can use basic HTML formatting like &lt;strong&gt;, &lt;em&gt;, and &lt;ul&gt;/&lt;li&gt; tags</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="category" class="form-label">Category</label>
+                                            <select class="form-select" id="category" name="category">
+                                                {% for category in categories %}
+                                                    <option value="{{ category }}" {{ 'selected' if faq and faq.category == category else '' }}>
+                                                        {{ category|title }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="form-text">Choose a category to organize this FAQ</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="display_order" class="form-label">Display Order</label>
+                                            <input type="number" class="form-control" id="display_order" name="display_order"
+                                                   value="{{ faq.display_order if faq else 0 }}" min="0">
+                                            <div class="form-text">Lower numbers appear first (0 = highest priority)</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% if faq %}
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                                               {{ 'checked' if faq.is_active else '' }}>
+                                        <label class="form-check-label" for="is_active">
+                                            Active (visible on public FAQ page)
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>{{ 'Update FAQ' if faq else 'Add FAQ' }}
+                                    </button>
+                                    <a href="{{ url_for('admin_faq') }}" class="btn btn-secondary">Cancel</a>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Preview</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="faq-item-preview">
+                                            <div class="faq-question-preview p-3 bg-gray-50 border-l-4 border-red-500 mb-2">
+                                                <h5 class="mb-0" id="preview-question">
+                                                    {{ faq.question if faq else 'Your question will appear here...' }}
+                                                </h5>
+                                            </div>
+                                            <div class="faq-answer-preview" id="preview-answer">
+                                                {% if faq and faq.answer %}
+                                                    {{ faq.answer|safe }}
+                                                {% else %}
+                                                    <p class="text-muted">Your answer will appear here...</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const questionInput = document.getElementById('question');
+    const answerInput = document.getElementById('answer');
+    const previewQuestion = document.getElementById('preview-question');
+    const previewAnswer = document.getElementById('preview-answer');
+
+    function updatePreview() {
+        previewQuestion.textContent = questionInput.value || 'Your question will appear here...';
+        previewAnswer.innerHTML = answerInput.value || '<p class="text-muted">Your answer will appear here...</p>';
+    }
+
+    questionInput.addEventListener('input', updatePreview);
+    answerInput.addEventListener('input', updatePreview);
+
+    // Initial preview update
+    updatePreview();
+});
+</script>
+{% endblock %}

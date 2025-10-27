@@ -1,0 +1,738 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to Animal Bite Center Naic{% endblock %}
+
+{% block content %}
+<style>
+  /* Global Styles */
+  :root {
+    --primary-color: #e74c3c;
+    --secondary-color: #2c3e50;
+    --accent-color: #e74c3c;
+    --text-color: #333;
+    --light-bg: #f9f9f9;
+    --white: #ffffff;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--text-color);
+    line-height: 1.6;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-color);
+    color: white;
+    padding: 14px 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .btn-outline {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    margin-right: 16px;
+  }
+  
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  section {
+    padding: 80px 0;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--secondary-color);
+    margin-top: 0;
+  }
+  
+  h1, h2, h3, h4,  .service-card h3 {
+    color: #1e293b;
+    margin: 0 0 15px 0;
+    font-size: 22px;
+    font-weight: 700;
+    transition: color 0.3s ease;
+  }
+  
+  .service-card:hover h3 {
+    color: #e74c3c;
+  }
+  
+  .contact-details p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  
+  .contact-details h3 {
+    margin: 0 0 8px 0;
+    color: #1e293b;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  /* Header */
+  .main-header {
+    background: var(--secondary-color);
+    color: white;
+    padding: 20px 0;
+  }
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+  }
+  
+  .nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 25px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  
+  .nav-links a:hover {
+    color: var(--accent-color);
+  }
+  
+  /* Hero Section */
+  .hero {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+    color: white;
+    text-align: left;
+    padding: 180px 0 120px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-content {
+    max-width: 600px;
+  }
+  
+  .hero h1 {
+    font-size: 56px;
+    font-weight: 800;
+    margin: 0 0 24px 0;
+    line-height: 1.2;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+  
+  .hero h1 .highlight {
+    color: #ffd700;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .hero h1 .highlight::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 215, 0, 0.2);
+    z-index: -1;
+    border-radius: 4px;
+  }
+  
+  .hero p {
+    font-size: 18px;
+    max-width: 500px;
+    margin: 0 0 40px 0;
+    opacity: 0.9;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+  
+  /* About Section */
+  .about {
+    background: #ffffff;
+    padding: 100px 0;
+  }
+  
+  .about-content {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+  }
+  
+  .about-text {
+    flex: 1;
+    text-align: left;
+  }
+  
+  .about-image {
+    flex: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  }
+  
+  .about-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  
+  .about-image:hover img {
+    transform: scale(1.03);
+  }
+  
+  .highlight-text {
+    color: #e74c3c;
+    position: relative;
+  }
+  
+  .highlight-text::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: rgba(231, 76, 60, 0.2);
+    z-index: -1;
+    border-radius: 4px;
+  }
+  
+  .features-list {
+    list-style: none;
+    padding: 0;
+    margin: 25px 0 35px;
+  }
+  
+  .features-list li {
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #4a5568;
+    display: flex;
+    align-items: center;
+  }
+  
+  .features-list i {
+    color: #e74c3c;
+    margin-right: 10px;
+    font-size: 18px;
+  }
+  
+  .section-title {
+    font-size: 42px;
+    font-weight: 800;
+    margin-bottom: 30px;
+    position: relative;
+    display: inline-block;
+    color: #2d3748;
+    line-height: 1.3;
+  }
+  
+  .section-title:after {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 4px;
+    background: #e74c3c;
+    bottom: -15px;
+    left: 0;
+    border-radius: 2px;
+  }
+  
+  .about p {
+    max-width: 800px;
+    margin: 0 auto 30px;
+  }
+  
+  /* Contact Section */
+  .contact {
+    background: #ffffff;
+    padding: 100px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .contact-container {
+    display: flex;
+    gap: 50px;
+    margin-top: 50px;
+  }
+  
+  .contact-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+  
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 25px;
+    background: #f8fafc;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .contact-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border-color: #e2e8f0;
+  }
+  
+  .contact-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(231, 76, 60, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+  
+  .contact-icon i {
+    font-size: 20px;
+    color: #e74c3c;
+    transition: all 0.3s ease;
+  }
+  
+  .contact-item:hover .contact-icon {
+    background: #e74c3c;
+  }
+  
+  .contact-item:hover .contact-icon i {
+    color: white;
+  }
+  
+  .contact-form {
+    flex: 1;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+  }
+  
+  .contact-form h3 {
+    font-size: 24px;
+    margin-bottom: 25px;
+    color: #1e293b;
+    text-align: left;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+  }
+  
+  .form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  }
+  
+  .contact-form .btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  
+  /* Services Section */
+  .services {
+    background: #f8fafc;
+    padding: 100px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .services::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30,10 L50,30 L70,10 L90,30 L70,50 L90,70 L70,90 L50,70 L30,90 L30,70 L10,50 L30,30 L10,10 L30,10 Z" fill="none" stroke="%23e2e8f0" stroke-width="1" fill-rule="evenodd"/></svg>');
+    opacity: 0.5;
+    z-index: 0;
+  }
+  
+  .section-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  
+  .section-subtitle {
+    font-size: 18px;
+    color: #64748b;
+    margin-top: 15px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+  
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .service-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    z-index: 1;
+  }
+  
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 0;
+    background: #e74c3c;
+    transition: height 0.3s ease;
+    z-index: -1;
+  }
+  
+  .service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  }
+  
+  .service-card:hover::before {
+    height: 100%;
+  }
+  
+  .service-icon {
+    width: 70px;
+    height: 70px;
+    background: rgba(231, 76, 60, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+  }
+  
+  .service-card:hover .service-icon {
+    background: #e74c3c;
+  }
+  
+  .service-icon i {
+    font-size: 32px;
+    color: #e74c3c;
+    transition: all 0.3s ease;
+  }
+  
+  .service-card:hover .service-icon i {
+    color: white;
+  }
+  
+  /* Footer */
+  .footer {
+    background: var(--secondary-color);
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .contact-container {
+      flex-direction: column;
+    }
+    
+    .contact-info,
+    .contact-form {
+      width: 100%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .header-content {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .nav-links {
+      margin-top: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .nav-links a {
+      margin: 5px 10px;
+    }
+    
+    .hero h1 {
+      font-size: 36px;
+    }
+    
+    .hero p {
+      font-size: 18px;
+    }
+    
+    .about-content {
+      flex-direction: column;
+    }
+    
+    .about-image {
+      margin-top: 40px;
+    }
+    
+    .services-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<!-- Header -->
+<header class="main-header">
+  <div class="container header-content">
+    <a href="#" class="logo">Animal Bite Center Naic</a>
+    <nav class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#contact">Contact</a>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero" id="home">
+  <div class="container">
+    <div class="hero-content">
+      <h1>Your Health,<br>Our <span class="highlight">Priority</span></h1>
+      <p>We provide expert care for animal bite treatments and preventive healthcare services to ensure your well-being and peace of mind.</p>
+      <div class="hero-buttons">
+        <a href="#" class="btn btn-primary">Book an Appointment</a>
+        <a href="#" class="btn btn-outline">Learn More</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About Section -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-content">
+      <div class="about-text">
+        <h2 class="section-title">About <span class="highlight-text">Us</span></h2>
+        <p>We are a dedicated team of healthcare professionals committed to providing the highest quality care for animal bite treatments. Our center is equipped with state-of-the-art facilities and staffed by experienced medical professionals who specialize in wound care, vaccinations, and post-exposure prophylaxis.</p>
+        <ul class="features-list">
+          <li><i class="fas fa-check-circle"></i> 24/7 Emergency Services</li>
+          <li><i class="fas fa-check-circle"></i> Expert Medical Team</li>
+          <li><i class="fas fa-check-circle"></i> Modern Facilities</li>
+          <li><i class="fas fa-check-circle"></i> Patient-Centered Care</li>
+        </ul>
+        <a href="#" class="btn btn-primary">Learn More</a>
+      </div>
+      <div class="about-image">
+        <img src="https://images.unsplash.com/photo-1585435557343-3b092031a831?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Medical Professionals" class="img-fluid">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Get In <span class="highlight-text">Touch</span></h2>
+      <p class="section-subtitle">We're here to help and answer any questions you might have</p>
+    </div>
+    
+    <div class="contact-container">
+      <div class="contact-info">
+        <div class="contact-item">
+          <div class="contact-icon">
+            <i class="fas fa-map-marker-alt"></i>
+          </div>
+          <div class="contact-details">
+            <h3>Our Location</h3>
+            <p>123 Health Street, Medical District<br>City, State 12345</p>
+          </div>
+        </div>
+        
+        <div class="contact-item">
+          <div class="contact-icon">
+            <i class="fas fa-phone-alt"></i>
+          </div>
+          <div class="contact-details">
+            <h3>Phone Number</h3>
+            <p>+1 (234) 567-8900<br>+1 (234) 567-8901</p>
+          </div>
+        </div>
+        
+        <div class="contact-item">
+          <div class="contact-icon">
+            <i class="fas fa-envelope"></i>
+          </div>
+          <div class="contact-details">
+            <h3>Email Address</h3>
+            <p>info@animalbitecenter.com<br>support@animalbitecenter.com</p>
+          </div>
+        </div>
+        
+        <div class="contact-item">
+          <div class="contact-icon">
+            <i class="far fa-clock"></i>
+          </div>
+          <div class="contact-details">
+            <h3>Working Hours</h3>
+            <p>Monday - Friday: 8:00 AM - 8:00 PM<br>Saturday: 9:00 AM - 5:00 PM<br>Sunday: Emergency Only</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="contact-form">
+        <h3>Send Us a Message</h3>
+        <form id="contactForm">
+          <div class="form-group">
+            <input type="text" id="name" name="name" placeholder="Your Name" required>
+          </div>
+          <div class="form-group">
+            <input type="email" id="email" name="email" placeholder="Your Email" required>
+          </div>
+          <div class="form-group">
+            <input type="text" id="subject" name="subject" placeholder="Subject" required>
+          </div>
+          <div class="form-group">
+            <textarea id="message" name="message" rows="5" placeholder="Your Message" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services Section -->
+<section class="services" id="services">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Our <span class="highlight-text">Services</span></h2>
+      <p class="section-subtitle">Comprehensive healthcare services for all your needs</p>
+    </div>
+    
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">
+          <i class="fas fa-syringe"></i>
+        </div>
+        <h3>Vaccinations</h3>
+        <p>Comprehensive vaccination services including rabies, tetanus, and other essential immunizations to protect you from various diseases.</p>
+        <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+      </div>
+      
+      <div class="service-card">
+        <div class="service-icon">
+          <i class="fas fa-first-aid"></i>
+        </div>
+        <h3>Wound Care</h3>
+        <p>Expert treatment and management of animal bite wounds, including cleaning, dressing, and follow-up care for optimal healing.</p>
+        <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+      </div>
+      
+      <div class="service-card">
+        <div class="service-icon">
+          <i class="fas fa-user-md"></i>
+        </div>
+        <h3>Consultation</h3>
+        <p>Professional medical consultation services to address your health concerns and provide personalized treatment plans.</p>
+        <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+    
+    <div class="text-center" style="margin-top: 50px;">
+      <a href="#" class="btn btn-outline">View All Services</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <p>&copy; 2023 Animal Bite Center Naic. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- Font Awesome for icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+{% endblock %}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book an Appointment - Choose Type</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+        /* Booking sidebar active step styling (keeps consistent with other booking pages) */
+        .sidebar-link.active {
+            background-color: #FEF2F2; /* red-50 */
+            color: #A52A2A; /* maroon */
+            font-weight: 600;
+            border-right: 4px solid #A52A2A;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto p-6">
+        <header class="flex items-center justify-between mb-8">
+            <a href="{{ url_for('home') }}" class="text-red-600 bg-white border-2 border-red-600 rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:bg-red-50 transition">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <h1 class="text-3xl font-bold text-gray-800">Book an Appointment</h1>
+            <div class="w-12"></div>
+        </header>
+
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Left Sidebar -->
+            <aside class="w-full md:w-1/4">
+                <div class="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                    <!-- Current Step (Type) -->
+                    <div class="sidebar-link active flex items-center p-3 text-gray-600 rounded-lg cursor-default">
+                        <i class="fas fa-list-alt fa-fw mr-3"></i> Type
+                    </div>
+                    <!-- Upcoming Steps -->
+                    <div class="flex items-center p-3 mt-2 text-gray-400 rounded-lg cursor-default">
+                        <i class="fas fa-pills fa-fw mr-3"></i> Services & Fees
+                    </div>
+                    <div class="flex items-center p-3 mt-2 text-gray-400 rounded-lg cursor-default">
+                        <i class="fas fa-calendar fa-fw mr-3"></i> Date & Time
+                    </div>
+                    <div class="flex items-center p-3 mt-2 text-gray-400 rounded-lg cursor-default">
+                        <i class="fas fa-user-edit fa-fw mr-3"></i> Details
+                    </div>
+                    <div class="flex items-center p-3 mt-2 text-gray-400 rounded-lg cursor-default">
+                        <i class="fas fa-file-alt fa-fw mr-3"></i> Summary
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Content -->
+            <main class="w-full md:w-3/4">
+                <div class="bg-white p-8 rounded-lg shadow-md border border-gray-200">
+                    <h2 class="text-xl font-semibold mb-4">Step 1 — Choose Appointment Type</h2>
+                    <p class="text-sm text-gray-600 mb-6">Please choose whether you need a vaccination or a consultation. This determines if we need bite/scratch details.</p>
+
+                    <form action="{{ url_for('book_appointment') }}" method="POST">
+                        <div class="space-y-4">
+                            <label class="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="appointment_type" value="vaccination" class="form-radio text-red-600" required>
+                                <div class="w-12 h-12 flex items-center justify-center text-red-600 text-2xl">
+                                    <i class="fas fa-syringe"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold">Vaccination</div>
+                                    <div class="text-sm text-gray-600">If you were bitten or scratched and need a vaccine (e.g., rabies), choose this.</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <!-- keep internal value 'consultation' for existing logic; display label changed to 'Booster Vaccine' -->
+                                <input type="radio" name="appointment_type" value="consultation" class="form-radio text-blue-600">
+                                <div class="w-12 h-12 flex items-center justify-center text-blue-600 text-2xl">
+                                    <i class="fas fa-notes-medical"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold">Booster Vaccine</div>
+                                    <div class="text-sm text-gray-600">Select this for booster vaccine appointments or follow-up vaccination care. Bite/scratch location details are not required.</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="mt-6 flex justify-end">
+                            <button type="submit" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg">Next</button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

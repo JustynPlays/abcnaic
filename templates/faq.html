@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - Dr. Care Animal Bite Center</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#A52A2A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DrCare ABC">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/sw.js" as="script">
+    <link rel="modulepreload" href="/static/sw.js">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .bg-maroon {
+            background-color: #A52A2A;
+        }
+        .text-maroon {
+            color: #A52A2A;
+        }
+        /* PWA specific styles */
+        .pwa-install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #A52A2A;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+        }
+        .faq-item {
+            border-bottom: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .faq-item.active .faq-question {
+            background-color: #fef2f2;
+            border-left-color: #dc2626;
+        }
+        .faq-question {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .faq-question:hover {
+            background-color: #fef2f2;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+        }
+        .faq-answer.show {
+            max-height: 1000px;
+            opacity: 1;
+        }
+        .faq-search-container {
+            position: relative;
+        }
+        .faq-search-input {
+            transition: all 0.3s ease;
+        }
+        .faq-search-input:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .faq-search-container:focus-within .search-icon {
+            color: #A52A2A;
+        }
+        /* Contact box layout: icon left, text right on desktop; stacked on mobile */
+        .contact-box {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            background: white;
+            border: 2px solid #dc2626; /* red border to match theme */
+            box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+        }
+        .contact-box .contact-icon {
+            flex: 0 0 auto;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: #fff5f5; /* soft red background */
+            color: #b91c1c; /* darker red */
+            font-size: 1.5rem;
+        }
+        .contact-box .contact-content {
+            flex: 1 1 auto;
+            text-align: left;
+        }
+        @media (max-width: 640px) {
+            .contact-box {
+                flex-direction: column;
+                text-align: center;
+            }
+            .contact-box .contact-content {
+                text-align: center;
+            }
+        }
+        /* Grid for splitting contact methods */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem; /* bring boxes closer together */
+            margin: 1.5rem auto 0; /* center the grid horizontally */
+            max-width: 520px; /* keep boxes together on wide screens */
+            justify-items: stretch;
+        }
+        /* Nudge both contact boxes slightly left on larger screens */
+        @media (min-width: 640px) {
+            .contact-grid {
+                transform: translateX(-8px);
+            }
+        }
+        .contact-grid .contact-box {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            background: white;
+            border: 2px solid #dc2626;
+        }
+        .contact-grid .contact-icon {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: #fff5f5;
+            color: #b91c1c;
+            font-size: 1.25rem;
+        }
+        /* Center email content within its box */
+        .email-center .contact-content {
+            margin-left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        /* Nudge email box slightly left on larger screens so it sits closer to the phone box */
+        @media (min-width: 640px) {
+            .email-center {
+                transform: translateX(-6px);
+            }
+        }
+        @media (max-width: 768px) {
+            .faq-search-input {
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+        }
+        /* Chat widget animations */
+        @keyframes chat-pop {
+            0% { transform: translateY(12px) scale(0.96); opacity: 0; }
+            60% { transform: translateY(-6px) scale(1.02); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .chat-animate-in {
+            animation: chat-pop 240ms cubic-bezier(.2,.9,.3,1) both;
+        }
+        /* Chat bubble animation */
+        @keyframes bubble-in {
+            0% { transform: translateY(10px) scale(0.98); opacity: 0; }
+            60% { transform: translateY(-4px) scale(1.02); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .chat-bubble { display: inline-block; padding: .45rem .75rem; border-radius: 12px; animation: bubble-in 260ms cubic-bezier(.2,.9,.3,1) both; }
+        .chat-bubble-user { background: #fee2e2; color: #7f1d1d; }
+        .chat-bubble-bot { background: #f3f4f6; color: #111827; }
+        /* Enlarge floating FAQ chatbot toggle button and icon */
+        #faq-chat-toggle {
+            width: 80px; /* larger tap target */
+            height: 80px; /* larger tap target */
+            padding: 0.25rem; /* keep inner spacing consistent */
+            border-radius: 9999px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #faq-chat-toggle i {
+            font-size: 28px; /* increase icon size */
+            line-height: 1;
+        }
+        /* Make sure chat header icon is also slightly larger for visual balance */
+        #faq-chat-window .fa-headset {
+            font-size: 1.05rem;
+            margin-right: 6px;
+        }
+                /* Chat window fixed sizing and scroll behavior
+                     - Keep the original (w-80) width but force a fixed height so adding
+                         chat bubbles doesn't resize the container.
+                     - Messages area becomes scrollable (overflow:auto) so new messages
+                         won't push layout around.
+                     Note: avoid setting display:flex unconditionally here because the
+                     element also uses the Tailwind `hidden` class. Use a rule that
+                     displays the window only when it is not .hidden. */
+                #faq-chat-window {
+                        height: 420px; /* fixed height */
+                        flex-direction: column;
+                        display: none; /* ensure it's hidden by default regardless of class specificity */
+                }
+                #faq-chat-window:not(.hidden) {
+                        display: flex;
+                }
+        #faq-chat-window #faq-chat-messages {
+            flex: 1 1 auto;
+            overflow: auto;
+            max-height: none; /* allow flex sizing to control height */
+        }
+        /* Expanded class no longer changes width; keep height constrained */
+        #faq-chat-window.expanded {
+            /* preserve fixed height but allow mobile to cap at viewport */
+            height: min(420px, 80vh);
+        }
+        /* Responsive: keep button smaller on narrow screens to avoid covering content */
+        @media (max-width: 640px) {
+            #faq-chat-toggle {
+                width: 64px;
+                height: 64px;
+            }
+            #faq-chat-toggle i { font-size: 20px; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 sidebar-open">
+    <!-- Header -->
+    <header class="bg-red-800 text-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-2 sm:space-x-3">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
+                    <img src="/static/icons/Logo 1.png" alt="Dr. Care Logo" class="h-full w-auto">
+                </div>
+                <span class="font-bold text-lg sm:text-xl tracking-tight">Dr. Care Animal Bite Center Naic</span>
+            </a>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden">
+                <button type="button" class="mobile-menu-button p-2 rounded-md text-white hover:bg-red-700 focus:outline-none">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                <a href="/" class="hover:text-red-200 transition-colors">Home</a>
+                <a href="/faq" class="hover:text-red-200 transition-colors">FAQ</a>
+                <div class="flex items-center space-x-4 ml-2">
+                    <a href="/login" class="bg-white text-red-800 font-semibold py-2 px-4 sm:px-6 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base">Login</a>
+                    <span class="h-6 w-px bg-gray-400"></span>
+                    <a href="/register" class="bg-red-700 text-white font-semibold py-2 px-4 sm:px-6 rounded-lg hover:bg-red-600 transition-colors text-sm sm:text-base">Register</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu hidden md:hidden bg-red-800 py-2 px-4">
+            <a href="/" class="block py-2 px-4 text-sm hover:bg-red-700 rounded">Home</a>
+            <a href="/faq" class="block py-2 px-4 text-sm hover:bg-red-700 rounded">FAQ</a>
+            <div class="mt-2 pt-2 border-t border-red-700">
+                <a href="/login" class="block py-2 px-4 text-sm bg-white text-red-800 font-semibold rounded-lg mb-2 text-center">Login</a>
+                <a href="/register" class="block py-2 px-4 text-sm bg-red-700 text-white font-semibold rounded-lg border border-white text-center">Register</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- FAQ Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16">
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Frequently Asked Questions</h1>
+                    <p class="text-lg text-gray-600">Find answers to common questions about our services and animal bite care</p>
+
+                    <!-- Search Bar -->
+                    <div class="mt-8 max-w-2xl mx-auto faq-search-container">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400 search-icon"></i>
+                            </div>
+                            <input type="text" id="faq-search" placeholder="Search FAQ..."
+                                   class="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors text-lg faq-search-input"
+                                   onkeyup="searchFAQ()">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Type to search through questions and answers</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden" id="faq-container">
+                    <!-- FAQ Items -->
+                    {% if faqs %}
+                        {% for faq in faqs %}
+                        <div class="faq-item">
+                            <div class="faq-question p-6 bg-gray-50 border-l-4 border-red-500" onclick="toggleFAQ(this)">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-xl font-semibold text-gray-800 pr-4">{{ faq.question }}</h3>
+                                    <i class="fas fa-chevron-down text-red-500 transition-transform duration-300"></i>
+                                </div>
+                            </div>
+                            <div class="faq-answer px-6 pb-6 text-gray-700">
+                                {{ faq.answer|safe }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-8">
+                            <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No FAQ items available at the moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Contact CTA -->
+                <div class="mt-16 text-center">
+                    <div class="bg-red-50 p-8 rounded-xl">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Still have questions?</h2>
+                        <p class="text-gray-600 mb-6">Our medical team is here to help. Don't hesitate to contact us for any concerns about animal bites or our services.</p>
+                        <div class="mt-6 flex justify-center">
+                            <div class="contact-grid grid gap-4 grid-cols-1 sm:grid-cols-2 w-full max-w-3xl">
+                                <div class="contact-box">
+                                    <div class="contact-icon">
+                                        <i class="fas fa-phone"></i>
+                                    </div>
+                                    <div class="contact-content">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-1">Call Us</h3>
+                                        <p class="text-gray-600">0953 7207 342<br>0908 7029 139</p>
+                                    </div>
+                                </div>
+
+                                <div class="contact-box email-center">
+                                    <div class="contact-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div class="contact-content">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-1">Email Us</h3>
+                                        <p class="text-gray-600">drcareanimalbitecenternaic@gmail.com</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-red-800 text-white shadow-md py-4">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm">&copy; 2025 Dr. Care Animal Bite Center Naic. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="pwa-install-banner">
+        <div class="container mx-auto">
+            <p class="mb-2">Install Dr. Care app for offline access and quick booking!</p>
+            <div class="flex justify-center gap-4">
+                <button id="install-btn" class="bg-white text-red-800 px-6 py-2 rounded font-semibold">Install App</button>
+                <button id="dismiss-banner" class="text-white underline">Maybe Later</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple FAQ Chatbot Widget -->
+    <div id="faq-chatbot" class="fixed z-50 bottom-6 right-6">
+        <button id="faq-chat-toggle" aria-label="Open chat" aria-controls="faq-chat-window" aria-expanded="false" class="bg-red-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center focus:outline-none">
+            <i class="fas fa-comments" aria-hidden="true"></i>
+        </button>
+
+        <div id="faq-chat-window" class="hidden mt-2 w-80 max-w-full bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-red-700 text-white px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-headset"></i>
+                    <strong>FAQ Assistant</strong>
+                </div>
+                	<button id="faq-chat-close" aria-label="Close chat" class="text-white opacity-90 hover:opacity-100 focus:outline-none">✕</button>
+            </div>
+            <div id="faq-chat-messages" class="p-3 max-h-64 overflow-auto text-sm text-gray-800"></div>
+            <div id="faq-chat-presets" class="px-3 pb-2 pt-1 border-t bg-gray-50">
+                    <div class="flex items-center justify-between">
+                    	<div class="text-xs text-gray-500">Quick questions</div>
+                    	<button id="faq-presets-toggle" aria-expanded="false" aria-controls="faq-presets-list" type="button" class="text-xs text-gray-500 hover:text-gray-700 focus:outline-none">Show</button>
+                    </div>
+                <div id="faq-presets-list" class="overflow-y-auto transition-[max-height] duration-300 ease-in-out max-h-0" style="max-height:0">
+                    <!-- preset buttons inserted here -->
+                </div>
+            </div>
+            <div class="p-3 border-t">
+                <form id="faq-chat-form" class="flex gap-2">
+                    <input id="faq-chat-input" class="flex-1 border rounded px-3 py-2 text-sm focus:outline-none" placeholder="Ask a question..." autocomplete="off">
+                    <button class="bg-red-600 text-white px-3 py-2 rounded text-sm" type="submit">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-button').addEventListener('click', function() {
+            document.querySelector('.mobile-menu').classList.toggle('hidden');
+        });
+
+        // FAQ search functionality
+        function searchFAQ() {
+            const searchInput = document.getElementById('faq-search');
+            const searchTerm = searchInput.value.toLowerCase();
+            const faqItems = document.querySelectorAll('.faq-item');
+
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question h3');
+                const answer = item.querySelector('.faq-answer');
+
+                if (question && answer) {
+                    const questionText = question.textContent.toLowerCase();
+                    const answerText = answer.textContent.toLowerCase();
+
+                    if (questionText.includes(searchTerm) || answerText.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                }
+            });
+
+            // Show/hide "no results" message
+            const visibleItems = Array.from(faqItems).filter(item => {
+                return item.style.display !== 'none' && item.style.display !== '';
+            });
+            const noResultsMsg = document.getElementById('no-results-message');
+            const faqContainer = document.getElementById('faq-container');
+
+            if (visibleItems.length === 0 && searchTerm.trim() !== '') {
+                if (!noResultsMsg) {
+                    const noResultsDiv = document.createElement('div');
+                    noResultsDiv.id = 'no-results-message';
+                    noResultsDiv.className = 'text-center py-8 text-gray-500';
+                    noResultsDiv.innerHTML = `
+                        <i class="fas fa-search text-4xl mb-4"></i>
+                        <p class="text-lg">No FAQ items found matching "${searchInput.value}"</p>
+                        <p class="text-sm mt-2">Try different keywords or browse all questions below</p>
+                        <button onclick="clearSearch()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Clear Search
+                        </button>
+                    `;
+                    faqContainer.appendChild(noResultsDiv);
+                } else {
+                    noResultsMsg.querySelector('p').textContent = `No FAQ items found matching "${searchInput.value}"`;
+                    noResultsMsg.style.display = 'block';
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('faq-search');
+            searchInput.value = '';
+            searchFAQ();
+        }
+
+        // FAQ toggle functionality
+        function toggleFAQ(element) {
+            const faqItem = element.closest('.faq-item');
+            const answer = faqItem.querySelector('.faq-answer');
+            const icon = element.querySelector('.fa-chevron-down');
+
+            // Close all other FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if (item !== faqItem) {
+                    const otherAnswer = item.querySelector('.faq-answer');
+                    const otherIcon = item.querySelector('.fa-chevron-down');
+                    if (otherAnswer && otherIcon) {
+                        otherAnswer.classList.remove('show');
+                        otherIcon.style.transform = 'rotate(0deg)';
+                        item.classList.remove('active');
+                    }
+                }
+            });
+
+            // Toggle current FAQ item
+            if (answer.classList.contains('show')) {
+                answer.classList.remove('show');
+                icon.style.transform = 'rotate(0deg)';
+                faqItem.classList.remove('active');
+            } else {
+                answer.classList.add('show');
+                icon.style.transform = 'rotate(180deg)';
+                faqItem.classList.add('active');
+            }
+        }
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwa-install-banner');
+        const installBtn = document.getElementById('install-btn');
+        const dismissBtn = document.getElementById('dismiss-banner');
+
+        // Listen for the beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show banner after 5 seconds
+            setTimeout(() => {
+                if (installBanner) {
+                    installBanner.classList.add('show');
+                }
+            }, 5000);
+        });
+
+        // Handle install button click
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    hideInstallBanner();
+                }
+            });
+        }
+
+        // Handle dismiss button click
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                hideInstallBanner();
+            });
+        }
+
+        function hideInstallBanner() {
+            if (installBanner) {
+                installBanner.classList.remove('show');
+            }
+        }
+
+        // Hide banner when app is installed
+        window.addEventListener('appinstalled', () => {
+            hideInstallBanner();
+            console.log('PWA was installed');
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        /* ----------------------------------------------
+           Simple FAQ Chatbot
+           - Reads FAQ items already rendered on the page
+           - Uses basic keyword / substring matching to find an answer
+           - Runs entirely client-side (no external services)
+        -----------------------------------------------*/
+        (function() {
+            const toggleBtn = document.getElementById('faq-chat-toggle');
+            const chatWindow = document.getElementById('faq-chat-window');
+            const closeBtn = document.getElementById('faq-chat-close');
+            const chatForm = document.getElementById('faq-chat-form');
+            const chatInput = document.getElementById('faq-chat-input');
+            const messages = document.getElementById('faq-chat-messages');
+
+            // Build an in-memory FAQ index from page content
+            function buildFAQIndex() {
+                const nodes = document.querySelectorAll('#faq-container .faq-item');
+                const faqs = [];
+                nodes.forEach(n => {
+                    const q = n.querySelector('.faq-question h3')?.textContent?.trim() || '';
+                    const a = n.querySelector('.faq-answer')?.textContent?.trim() || '';
+                    if (q && a) faqs.push({question: q, answer: a});
+                });
+                return faqs;
+            }
+
+            let faqIndex = buildFAQIndex();
+
+            function appendMessage(text, fromUser) {
+                const wrapper = document.createElement('div');
+                wrapper.className = (fromUser ? 'text-right text-sm mb-2' : 'text-left text-sm mb-2');
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble ' + (fromUser ? 'chat-bubble-user' : 'chat-bubble-bot');
+                bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+                wrapper.appendChild(bubble);
+                messages.appendChild(wrapper);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            function escapeHtml(s) {
+                return s.replace(/[&<>"']/g, function(c) {
+                    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];
+                });
+            }
+
+            function findBestAnswer(query) {
+                if (!query) return null;
+                const q = query.toLowerCase();
+                // exact question match
+                for (const f of faqIndex) {
+                    if (f.question.toLowerCase() === q) return f.answer;
+                }
+                // keyword score: count matching words
+                const tokens = q.split(/\s+/).filter(Boolean);
+                let best = null;
+                let bestScore = 0;
+                for (const f of faqIndex) {
+                    const hay = (f.question + ' ' + f.answer).toLowerCase();
+                    let score = 0;
+                    tokens.forEach(t => { if (hay.includes(t)) score += 1; });
+                    if (score > bestScore) { bestScore = score; best = f; }
+                }
+                // threshold: at least one matching token
+                if (best && bestScore > 0) return best.answer;
+                return null;
+            }
+
+            // Toggle UI
+            toggleBtn.addEventListener('click', () => {
+                const wasHidden = chatWindow.classList.contains('hidden');
+                if (wasHidden) {
+                openChatWindow(true);
+                // hide the floating chat toggle so it doesn't obscure the open chat
+                if (toggleBtn) toggleBtn.style.display = 'none';
+                } else {
+                    // hide and collapse expanded state
+                    chatWindow.classList.add('hidden');
+                    chatWindow.classList.remove('expanded');
+                    // show the floating chat toggle again
+                    if (toggleBtn) {
+                        toggleBtn.style.display = '';
+                        toggleBtn.setAttribute('aria-expanded', 'false');
+                    }
+                    // also collapse presets for cleanliness
+                    presetsOpen = false;
+                    if (presetsList) {
+                        presetsList.style.maxHeight = '0';
+                        presetsList.setAttribute('aria-hidden', 'true');
+                    }
+                    if (presetsToggle) {
+                        presetsToggle.textContent = 'Show';
+                        presetsToggle.setAttribute('aria-expanded', 'false');
+                    }
+                }
+                // rebuild index in case FAQs changed dynamically
+                faqIndex = buildFAQIndex();
+            });
+            function openChatWindow(markFirstOpen) {
+                chatWindow.classList.remove('hidden');
+                // expand to full-sized chat
+                chatWindow.classList.add('expanded');
+                // animate in
+                chatWindow.classList.remove('chat-animate-in');
+                void chatWindow.offsetWidth; // force reflow
+                chatWindow.classList.add('chat-animate-in');
+                populatePresets();
+
+                // if presets list has content, open it and show 'Close'
+                const seenChat = localStorage.getItem('faq_chat_seen');
+                if (presetsList && presetsList.children.length > 0) {
+                    // if first time opening ever, auto-open presets
+                    if (!seenChat && markFirstOpen) {
+                        presetsOpen = true;
+                        presetsList.style.maxHeight = Math.min(presetsList.scrollHeight, 160) + 'px';
+                        if (presetsToggle) {
+                            presetsToggle.textContent = 'Close';
+                            presetsToggle.setAttribute('aria-expanded', 'true');
+                        }
+                        localStorage.setItem('faq_chat_seen', '1');
+                    } else {
+                        // If presets already visible in DOM, reflect that with 'Close'
+                        if (presetsList.style.maxHeight && presetsList.style.maxHeight !== '0px' && presetsList.style.maxHeight !== '0') {
+                            presetsOpen = true;
+                            if (presetsToggle) {
+                                presetsToggle.textContent = 'Close';
+                                presetsToggle.setAttribute('aria-expanded', 'true');
+                            }
+                            presetsList.setAttribute('aria-hidden', 'false');
+                        } else {
+                            presetsOpen = false;
+                            if (presetsToggle) {
+                                presetsToggle.textContent = 'Show';
+                                presetsToggle.setAttribute('aria-expanded', 'false');
+                            }
+                            presetsList.setAttribute('aria-hidden', 'true');
+                        }
+                    }
+                } else {
+                    if (presetsToggle) {
+                        presetsToggle.textContent = 'Show';
+                        presetsToggle.setAttribute('aria-expanded', 'false');
+                    }
+                    presetsOpen = false;
+                }
+
+                // set chat toggle accessible expanded state and hide it visually
+                if (toggleBtn) {
+                    toggleBtn.setAttribute('aria-expanded', 'true');
+                    toggleBtn.style.display = 'none';
+                }
+                chatInput.focus();
+            }
+            closeBtn.addEventListener('click', () => {
+                chatWindow.classList.add('hidden');
+                chatWindow.classList.remove('expanded');
+                // update aria state and restore floating toggle visibility
+                if (toggleBtn) {
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                    toggleBtn.style.display = '';
+                }
+                if (presetsToggle) {
+                    presetsToggle.textContent = 'Show';
+                    presetsToggle.setAttribute('aria-expanded', 'false');
+                }
+                if (presetsList) presetsList.setAttribute('aria-hidden', 'true');
+            });
+
+            // Populate preset question buttons (top 6 questions)
+            function populatePresets() {
+                const listContainer = document.getElementById('faq-presets-list');
+                listContainer.innerHTML = '';
+                if (!faqIndex.length) return;
+                const list = document.createElement('div');
+                list.className = 'flex flex-wrap gap-2 py-2';
+                faqIndex.slice(0,6).forEach(f => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'bg-white border rounded px-2 py-1 text-xs text-gray-800 hover:bg-gray-100';
+                    btn.textContent = f.question.length > 40 ? f.question.slice(0,40) + '…' : f.question;
+                    btn.addEventListener('click', () => {
+                        appendMessage(f.question, true);
+                        appendMessage(f.answer, false);
+                    });
+                    list.appendChild(btn);
+                });
+                listContainer.appendChild(list);
+
+                // set initial max-height so transition works
+                requestAnimationFrame(() => {
+                    const cap = 120;
+                    const h = Math.min(listContainer.scrollHeight, cap);
+                    listContainer.style.maxHeight = h + 'px';
+                    listContainer.style.overflowY = listContainer.scrollHeight > cap ? 'auto' : 'hidden';
+                });
+            }
+
+            // Toggle presets open/close with animation
+            const presetsToggle = document.getElementById('faq-presets-toggle');
+            const presetsList = document.getElementById('faq-presets-list');
+            let presetsOpen = false;
+            if (presetsToggle) {
+                presetsToggle.addEventListener('click', () => {
+                    presetsOpen = !presetsOpen;
+                    if (presetsOpen) {
+                        // Show/Close label: use Close when visible
+                        presetsToggle.textContent = 'Close';
+                        // expand to scrollHeight
+                        presetsList.style.maxHeight = Math.min(presetsList.scrollHeight, 160) + 'px';
+                    } else {
+                        presetsToggle.textContent = 'Show';
+                        presetsList.style.maxHeight = '0';
+                    }
+                });
+            }
+
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const text = chatInput.value.trim();
+                if (!text) return;
+                appendMessage(text, true);
+                chatInput.value = '';
+                const answer = findBestAnswer(text);
+                if (answer) {
+                    appendMessage(answer, false);
+                } else {
+                    appendMessage("I couldn't find a direct answer. Try rephrasing or browse the FAQ below.", false);
+                }
+            });
+
+            // keyboard shortcut: focus chat when pressing '/'
+            document.addEventListener('keydown', (e) => {
+                if (e.key === "\/") {
+                    if (chatWindow.classList.contains('hidden')) {
+                        chatWindow.classList.remove('hidden');
+                        // hide floating toggle when opening via keyboard
+                        if (toggleBtn) toggleBtn.style.display = 'none';
+                        if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+                    }
+                    chatInput.focus();
+                    e.preventDefault();
+                }
+                // ESC key: close chat and return focus to toggle (accessibility)
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    if (!chatWindow.classList.contains('hidden')) {
+                        // simulate the close button behavior
+                        chatWindow.classList.add('hidden');
+                        chatWindow.classList.remove('expanded');
+                        if (toggleBtn) {
+                            toggleBtn.setAttribute('aria-expanded', 'false');
+                            toggleBtn.style.display = '';
+                        }
+                        if (presetsToggle) {
+                            presetsToggle.textContent = 'Show';
+                            presetsToggle.setAttribute('aria-expanded', 'false');
+                        }
+                        if (presetsList) presetsList.setAttribute('aria-hidden', 'true');
+                        // return focus to the floating toggle for keyboard users
+                        if (toggleBtn) toggleBtn.focus();
+                        e.preventDefault();
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

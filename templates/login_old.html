@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --brand-red: #9A1B1B;
+        --brand-beige: #F7E9D5;
+        --text-dark: #2C2C2C;
+        --gold: #F6C453;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #fff8f1;
+        color: var(--text-dark);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Navigation */
+    .navbar {
+        background: var(--brand-red);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .navbar .nav-link {
+        color: #fff !important;
+        font-weight: 500;
+    }
+
+    .brand-chip {
+        background: var(--brand-red);
+        color: #fff;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        border: 2px solid #fff;
+    }
+
+    .brand-chip i {
+        font-size: 1rem;
+    }
+
+    /* Form Styles */
+    .login-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        margin-top: 2rem;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 450px;
+        padding: 2.5rem;
+    }
+
+    .login-title {
+        color: var(--brand-red);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--brand-red);
+        box-shadow: 0 0 0 0.25rem rgba(154, 27, 27, 0.15);
+    }
+
+    .btn-login {
+        background: var(--brand-red);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-login:hover {
+        background: #7a1515;
+        transform: translateY(-2px);
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: var(--text-dark);
+    }
+
+    .login-link a {
+        color: var(--brand-red);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+
+    .forgot-password {
+        color: var(--brand-red);
+        text-decoration: none;
+        font-size: 0.875rem;
+        margin-top: -1rem;
+        display: block;
+        text-align: right;
+    }
+
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+
+    /* Flash Messages */
+    .flashes {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .flashes li {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .flashes .error {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+    }
+
+    .flashes .success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+    }
+
+    .flashes .warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    /* Hide global flash messages on the login page */
+    .flash-messages {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <h2 class="login-title">Welcome Back!</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="mb-3">
+                <label for="identifier" class="form-label">Email or Username</label>
+                <input type="text" class="form-control" id="identifier" name="identifier"
+                       placeholder="Enter your email or username" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password"
+                       placeholder="Enter your password" required>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-login">Sign In</button>
+        </form>
+
+        <p class="login-link">Don't have an account? <a href="{{ url_for('register') }}">Sign up</a></p>
+    </div>
+</div>
+{% endblock %}

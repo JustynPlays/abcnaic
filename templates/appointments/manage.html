@@ -1,0 +1,98 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{% if appointment %}Edit Appointment{% else %}Add Appointment{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">{% if appointment %}Edit Appointment{% else %}Add New Appointment{% endif %}</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold" style="color: #e84118;">Appointment Details</h6>
+        </div>
+        <div class="card-body">
+            <form method="post" id="appointmentForm">
+                <!-- Patient Information -->
+                <h5 class="mb-3">Patient Information</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="patient_name" class="form-label">Patient Name</label>
+                        <input type="text" class="form-control" id="patient_name" name="patient_name" value="{{ appointment.patient_name if appointment else '' }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="patient_phone" class="form-label">Patient Phone</label>
+                        <input type="text" class="form-control" id="patient_phone" name="patient_phone" value="{{ appointment.patient_phone if appointment else '' }}">
+                    </div>
+                </div>
+
+                <!-- Appointment Details -->
+                <h5 class="mb-3 mt-4">Appointment Details</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="service" class="form-label">Service</label>
+                        <select class="form-select" id="service" name="service" required>
+                            <option value="">-- Select Service --</option>
+                            {% for s in services %}
+                            <option value="{{ s.name }}" data-price="{{ s.price }}" {% if appointment and appointment.service == s.name %}selected{% endif %}>{{ s.name }} - ₱{{ "%.2f"|format(s.price) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="price" class="form-label">Price (₱)</label>
+                        <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ appointment.price if appointment else '' }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="appointment_date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="appointment_date" name="appointment_date" value="{{ appointment.appointment_date if appointment else '' }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="appointment_time" class="form-label">Time</label>
+                        <input type="time" class="form-control" id="appointment_time" name="appointment_time" value="{{ appointment.appointment_time if appointment else '' }}" required>
+                    </div>
+                </div>
+
+                <!-- Location & Category Information -->
+                <h5 class="mb-3 mt-4">Location & Category Information</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="bite_location" class="form-label">Bite Location</label>
+                        <input type="text" class="form-control" id="bite_location" name="bite_location" value="{{ appointment.bite_location if appointment else '' }}" placeholder="e.g., Left hand, Right leg">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="">-- Select Category --</option>
+                            <option value="I" {% if appointment and appointment.category == 'I' %}selected{% endif %}>Category I - No exposure</option>
+                            <option value="II" {% if appointment and appointment.category == 'II' %}selected{% endif %}>Category II - Minor exposure</option>
+                            <option value="III" {% if appointment and appointment.category == 'III' %}selected{% endif %}>Category III - Severe exposure</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr>
+                <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-outline-danger">{% if appointment %}Update Appointment{% else %}Save Appointment{% endif %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const serviceSelect = document.getElementById('service');
+    const priceInput = document.getElementById('price');
+
+    serviceSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const price = selectedOption.getAttribute('data-price');
+        if (price) {
+            priceInput.value = parseFloat(price).toFixed(2);
+        }
+    });
+});
+</script>
+{% endblock %}

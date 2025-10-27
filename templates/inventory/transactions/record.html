@@ -1,0 +1,310 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Record Inventory Transaction - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Record Inventory Transaction</h1>
+        <a href="{{ url_for('inventory.inventory_transactions') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Transactions
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-exchange-alt"></i> Transaction Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="transactionForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="item_id" class="form-label required">Item</label>
+                                <select class="form-select" id="item_id" name="item_id" required>
+                                    <option value="">Select an item</option>
+                                    {% for item in items %}
+                                    <option value="{{ item.id }}" 
+                                            {% if request.args.get('item_id')|int == item.id %}selected{% endif %}>
+                                        {{ item.name }} ({{ item.unit }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="transaction_type" class="form-label required">Transaction Type</label>
+                                <select class="form-select" id="transaction_type" name="transaction_type" required>
+                                    <option value="">Select type</option>
+                                    {% for type, label in transaction_types %}
+                                    <option value="{{ type }}" 
+                                            {% if request.args.get('type') == type %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="quantity" class="form-label required">Quantity</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="quantity" name="quantity" 
+                                           min="0.01" step="0.01" required>
+                                    <span class="input-group-text" id="unitDisplay">-</span>
+                                </div>
+                                <div class="form-text" id="currentStock"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="reference_type" class="form-label">Reference Type</label>
+                                <select class="form-select" id="reference_type" name="reference_type">
+                                    {% for type, label in reference_types %}
+                                    <option value="{{ type }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reference_id" class="form-label">Reference ID/Number</label>
+                            <input type="text" class="form-control" id="reference_id" name="reference_id" 
+                                   placeholder="e.g., PO#12345">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                      placeholder="Additional information about this transaction"></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('inventory.inventory_transactions') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Record Transaction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Current Stock Info Card (will be shown when an item is selected) -->
+            <div class="card shadow mb-4 d-none" id="stockInfoCard">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle"></i> Current Stock Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Current Stock
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="currentStockValue">-</div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Minimum Level
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="minStockValue">-</div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                After Transaction
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="afterTransactionValue">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const itemSelect = document.getElementById('item_id');
+        const transactionType = document.getElementById('transaction_type');
+        const quantityInput = document.getElementById('quantity');
+        const unitDisplay = document.getElementById('unitDisplay');
+        const currentStockDisplay = document.getElementById('currentStockValue');
+        const minStockDisplay = document.getElementById('minStockValue');
+        const afterTransactionDisplay = document.getElementById('afterTransactionValue');
+        const stockInfoCard = document.getElementById('stockInfoCard');
+        const currentStockText = document.getElementById('currentStock');
+        
+        // Store item data for quick lookup
+        const itemsData = {
+            {% for item in items %}
+            {{ item.id }}: {
+                unit: '{{ item.unit }}',
+                currentStock: {{ item.quantity }},
+                minStock: {{ item.min_quantity if item.min_quantity is not none else 0 }}
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        };
+        
+        // Update the form when item or transaction type changes
+        function updateForm() {
+            const itemId = itemSelect.value;
+            const type = transactionType.value;
+            const item = itemsData[itemId];
+            
+            if (item) {
+                // Update unit display
+                unitDisplay.textContent = item.unit;
+                
+                // Update stock info card
+                currentStockDisplay.textContent = `${item.currentStock} ${item.unit}`;
+                minStockDisplay.textContent = item.minStock > 0 ? `${item.minStock} ${item.unit}` : 'Not set';
+                
+                // Show/hide min stock warning
+                if (item.minStock > 0 && item.currentStock <= item.minStock) {
+                    currentStockText.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Low stock (min: ${item.minStock} ${item.unit})</span>`;
+                } else {
+                    currentStockText.textContent = `Current stock: ${item.currentStock} ${item.unit}`;
+                }
+                
+                // Show the stock info card
+                stockInfoCard.classList.remove('d-none');
+                
+                // Set appropriate quantity step based on item type
+                quantityInput.step = '1';
+                quantityInput.min = '1';
+                
+                // For stock out, limit to available quantity
+                if (type === 'out' || type === 'expired') {
+                    quantityInput.max = item.currentStock;
+                    if (parseFloat(quantityInput.value) > item.currentStock) {
+                        quantityInput.value = item.currentStock;
+                    }
+                } else {
+                    quantityInput.removeAttribute('max');
+                }
+                
+                // Update after transaction value
+                updateAfterTransaction();
+                
+            } else {
+                // Reset form if no item is selected
+                unitDisplay.textContent = '-';
+                currentStockText.textContent = '';
+                stockInfoCard.classList.add('d-none');
+            }
+        }
+        
+        // Update the after transaction value
+        function updateAfterTransaction() {
+            const itemId = itemSelect.value;
+            const type = transactionType.value;
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const item = itemsData[itemId];
+            
+            if (item) {
+                let afterTransaction = item.currentStock;
+                
+                switch (type) {
+                    case 'in':
+                    case 'returned':
+                        afterTransaction += quantity;
+                        break;
+                    case 'out':
+                    case 'expired':
+                        afterTransaction = Math.max(0, afterTransaction - quantity);
+                        break;
+                    case 'adjustment':
+                        afterTransaction = quantity;
+                        break;
+                }
+                
+                afterTransactionDisplay.textContent = `${afterTransaction} ${item.unit}`;
+                
+                // Highlight if stock will be low after this transaction
+                if (item.minStock > 0 && afterTransaction <= item.minStock) {
+                    afterTransactionDisplay.className = 'h5 mb-0 font-weight-bold text-danger';
+                } else {
+                    afterTransactionDisplay.className = 'h5 mb-0 font-weight-bold text-gray-800';
+                }
+            }
+        }
+        
+        // Event listeners
+        itemSelect.addEventListener('change', updateForm);
+        transactionType.addEventListener('change', updateForm);
+        quantityInput.addEventListener('input', updateAfterTransaction);
+        
+        // Form validation
+        const form = document.getElementById('transactionForm');
+        form.addEventListener('submit', function(event) {
+            let valid = true;
+            
+            // Reset validation
+            document.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            
+            // Check required fields
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    valid = false;
+                }
+            });
+            
+            // Check quantity
+            const quantity = parseFloat(quantityInput.value);
+            if (isNaN(quantity) || quantity <= 0) {
+                quantityInput.classList.add('is-invalid');
+                valid = false;
+            }
+            
+            // For stock out, check if enough quantity is available
+            const type = transactionType.value;
+            const itemId = itemSelect.value;
+            if (valid && itemId && (type === 'out' || type === 'expired')) {
+                const item = itemsData[itemId];
+                if (quantity > item.currentStock) {
+                    quantityInput.classList.add('is-invalid');
+                    document.getElementById('quantityFeedback').textContent = 
+                        `Only ${item.currentStock} ${item.unit} available`;
+                    valid = false;
+                }
+            }
+            
+            if (!valid) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Scroll to first invalid field
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+        
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+        // Initialize form if item is pre-selected from URL
+        if (itemSelect.value) {
+            updateForm();
+        }
+    });
+</script>
+{% endblock %}

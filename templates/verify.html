@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email | Animal Bite Center Naic</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        {% if status == 'success' %}
+            <a href="{{ url_for('login') }}">Go to Login</a>
+        {% else %}
+            <h2 class="{{ status }}">{{ message }}</h2>
+            <a href="{{ url_for('resend_verification') }}">Resend Verification Email</a> |
+            <a href="{{ url_for('login') }}">Back to Login</a>
+        {% endif %}
+    </div>
+    <nav>
+        <div class="brand">Animal Bite Center Naic</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/register">Register</a>
+            <a href="/login">Login</a>
+        </div>
+    </nav>
+    <main>
+        <section class="form-section">
+            <h2>Email Verification</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <ul class="flashes">
+                  {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+            <p>Please check your email and click the verification link to activate your account.</p>
+        </section>
+    </main>
+    <footer>
+        &copy; 2025 Animal Bite Center. All rights reserved.
+    </footer>
+</body>
+</html>

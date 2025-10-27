@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dr. Care Animal Bite Center</string>
+    <string name="fallback_message">Opening Dr. Care in browser...</string>
+    <string name="url_error">Unable to open Dr. Care. Please check your internet connection.</string>
+</resources>

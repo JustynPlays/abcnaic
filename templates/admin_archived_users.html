@@ -1,0 +1,158 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Archived Users - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Archived Users</h1>
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row gx-2 align-items-center">
+                <div class="col-md-6">
+                    <input type="text" name="search" class="form-control" placeholder="Search archived users by name, email or id..." value="{{ search }}">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+                <div class="col-auto">
+                    <a href="{{ url_for('admin_archived_users') }}" class="btn btn-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Original User ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Archived At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in archived %}
+                        <tr>
+                            <td>{{ a.id }}</td>
+                            <td>{{ a.original_user_id }}</td>
+                            <td>{{ a.name }}</td>
+                            <td>{{ a.email }}</td>
+                            <td>{{ a.archived_at.split('T')[0] if a.archived_at else 'N/A' }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info view-archived-btn" data-id="{{ a.id }}">View</button>
+                                <form method="post" action="{{ url_for('admin_restore_archived_user', archived_id=a.id) }}" style="display:inline-block; margin-left:6px">
+                                    <button class="btn btn-sm btn-success" type="submit">Restore</button>
+                                </form>
+                                <form method="post" action="{{ url_for('admin_delete_archived_user', archived_id=a.id) }}" style="display:inline-block; margin-left:6px" onsubmit="return confirm('Delete archived record permanently?');">
+                                    <button class="btn btn-sm btn-danger" type="submit">Delete Permanently</button>
+                                </form>
+                                <!-- Hidden JSON snapshot for viewing -->
+                                <script type="application/json" id="snapshot-{{ a.id }}">{{ a.data|default('{}')|safe }}</script>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No archived users found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal fade" id="archivedViewModal" tabindex="-1" aria-labelledby="archivedViewModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="archivedViewModalLabel">Archived User Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="archivedDetailsContainer"></div>
+            <hr>
+            <h6>Raw Snapshot</h6>
+            <pre id="archivedRaw" style="white-space:pre-wrap; background:#f8f9fa; padding:12px; border-radius:6px; max-height:400px; overflow:auto;"></pre>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const modalEl = document.getElementById('archivedViewModal');
+    if(!modalEl) return;
+    const bsModal = new bootstrap.Modal(modalEl);
+
+    document.querySelectorAll('.view-archived-btn').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            const id = btn.getAttribute('data-id');
+            const script = document.getElementById('snapshot-' + id);
+            let data = {};
+            try{
+                data = JSON.parse(script ? script.textContent : '{}');
+            }catch(err){
+                data = {error: 'Invalid JSON snapshot'};
+            }
+
+            const container = document.getElementById('archivedDetailsContainer');
+            container.innerHTML = '';
+
+            if(data.user){
+                const u = data.user;
+                const dl = document.createElement('div');
+                dl.innerHTML = `
+                    <h6>User</h6>
+                    <div><strong>Name:</strong> ${u.name || ''}</div>
+                    <div><strong>Username:</strong> ${u.username || ''}</div>
+                    <div><strong>Email:</strong> ${u.email || ''}</div>
+                    <div><strong>Phone:</strong> ${u.contact_number || ''}</div>
+                    <div><strong>Address:</strong> ${u.address || ''}</div>
+                    <div><strong>Created:</strong> ${u.created_at || ''}</div>
+                `;
+                container.appendChild(dl);
+            }
+
+            // Show summaries of nested arrays if present
+            function addArraySummary(title, arr){
+                const s = document.createElement('div');
+                s.innerHTML = `<h6 class="mt-3">${title} (${(arr && arr.length) || 0})</h6>`;
+                if(arr && arr.length){
+                    const ul = document.createElement('ul');
+                    arr.slice(0,20).forEach(function(item){
+                        const li = document.createElement('li');
+                        li.textContent = JSON.stringify(item);
+                        ul.appendChild(li);
+                    });
+                    s.appendChild(ul);
+                }
+                container.appendChild(s);
+            }
+
+            if(data.appointments) addArraySummary('Appointments', data.appointments);
+            if(data.vaccine_records) addArraySummary('Vaccine Records', data.vaccine_records);
+            if(data.documents) addArraySummary('Documents', data.documents);
+            if(data.activity) addArraySummary('Activity', data.activity);
+
+            // Raw
+            document.getElementById('archivedRaw').textContent = JSON.stringify(data, null, 2);
+
+            bsModal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

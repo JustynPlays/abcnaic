@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book an Appointment - Date & Time</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar-link.active {
+            background-color: #FEF2F2; /* red-50 */
+            color: #A52A2A; /* maroon */
+            font-weight: 600;
+            border-right: 4px solid #A52A2A;
+        }
+        .sidebar-link.completed {
+            background-color: rgba(165,42,42,0.05);
+            color: #A52A2A;
+            font-weight: 600;
+        }
+        .flatpickr-day.selected {
+            background: #A52A2A;
+            border-color: #A52A2A;
+        }
+        .timeslot-btn.selected {
+            background-color: #A52A2A;
+            color: white;
+            border-color: #A52A2A;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 sm:p-6">
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-6">
+            <a href="{{ url_for('home') }}" class="text-red-600 bg-white border-2 border-red-600 rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:bg-red-50 transition">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center">Book an Appointment</h1>
+            <div class="w-12"></div> <!-- Spacer -->
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left Sidebar -->
+            <aside class="w-full lg:w-1/4">
+                <div class="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                    <!-- Step 1: Type -->
+                    <div class="flex items-center p-3 text-gray-500 rounded-lg cursor-default">
+                        <i class="fas fa-list-alt fa-fw mr-3"></i> Type
+                    </div>
+                    <!-- Completed Step - Not clickable -->
+                    <div class="flex items-center p-3 text-gray-500 rounded-lg cursor-default">
+                        <i class="fas fa-pills fa-fw mr-3"></i> Services & Fees
+                    </div>
+                    <!-- Current Step - Not clickable -->
+                    <div class="sidebar-link active flex items-center p-3 mt-2 text-gray-600 rounded-lg cursor-default">
+                        <i class="fas fa-calendar-alt fa-fw mr-3"></i> Date & Time
+                    </div>
+                    <!-- Upcoming Steps - Not clickable and faded -->
+                    <div class="flex items-center p-3 mt-2 text-gray-400 rounded-lg cursor-default">
+                        <i class="fas fa-user-edit fa-fw mr-3"></i> Details
+                    </div>
+                    <div class="flex items-center p-3 mt-2 text-gray-400 rounded-lg cursor-default">
+                        <i class="fas fa-file-alt fa-fw mr-3"></i> Summary
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Content -->
+            <main class="w-full lg:w-3/4">
+                <form action="{{ url_for('book_appointment_datetime') }}" method="POST" class="bg-white p-6 sm:p-8 rounded-lg shadow-md border border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Date & Time</h2>
+                    {# Applied vaccines removed from Date & Time page per request. #}
+                    <input type="hidden" id="selected_date" name="selected_date" required>
+                    <input type="hidden" id="selected_time" name="selected_time" required>
+
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Calendar -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select a Date</label>
+                            <div id="calendar" class="bg-gray-50 p-2 rounded-lg"></div>
+                        </div>
+
+                        <!-- Time Slots -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select a Time Slot</label>
+                            <div id="time-slots" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-2">
+                                <p id="time-slot-placeholder" class="text-gray-500 col-span-full">Please select a date to see available time slots.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="mt-8 pt-6 border-t flex justify-between items-center">
+                        {%- set appt_type = session.appointment_details.appointment_type if session.appointment_details and session.appointment_details.appointment_type else '' -%}
+                        {% if appt_type == 'consultation' %}
+                            <a href="{{ url_for('book_appointment') }}" class="text-gray-600 hover:text-gray-900 font-medium"><i class="fas fa-arrow-left mr-2"></i>Go Back</a>
+                        {% else %}
+                            <a href="{{ url_for('book_appointment_services') }}" class="text-gray-600 hover:text-gray-900 font-medium"><i class="fas fa-arrow-left mr-2"></i>Go Back</a>
+                        {% endif %}
+                        <button type="submit" id="next-btn" class="bg-red-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                            Next
+                        </button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const timeSlotsEl = document.getElementById('time-slots');
+            const placeholder = document.getElementById('time-slot-placeholder');
+            const selectedDateInput = document.getElementById('selected_date');
+            const selectedTimeInput = document.getElementById('selected_time');
+            const nextBtn = document.getElementById('next-btn');
+
+            const fp = flatpickr(calendarEl, {
+                inline: true,
+                minDate: 'today',
+                disable: [
+                    function(date) {
+                        // Disable Sundays (day 0)
+                        return (date.getDay() === 0);
+                    }
+                ],
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length > 0) {
+                        const selectedDay = selectedDates[0].getDay();
+                        selectedDateInput.value = dateStr;
+                        generateTimeSlots(selectedDay);
+                        selectedTimeInput.value = ''; // Reset time on new date selection
+                        updateNextButtonState();
+                    }
+                }
+            });
+
+            function generateTimeSlots(day) {
+                timeSlotsEl.innerHTML = ''; // Clear existing slots
+                const isWeekday = day >= 1 && day <= 5; // Monday to Friday
+                const isSaturday = day === 6;
+
+                let startTime, endTime;
+                if (isWeekday) {
+                    startTime = 7;
+                    endTime = 17; // 5 PM
+                } else if (isSaturday) {
+                    startTime = 8;
+                    endTime = 16; // 4 PM
+                } else {
+                    return; // No slots for other days
+                }
+
+                for (let hour = startTime; hour < endTime; hour++) {
+                    if (hour === 12) continue; // Skip lunch break
+
+                    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+                    const ampm = hour < 12 ? 'AM' : 'PM';
+                    const timeString = `${displayHour}:00 ${ampm}`;
+                    
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = timeString;
+                    btn.dataset.time = `${hour}:00`;
+                    btn.className = 'timeslot-btn p-2 border rounded-md text-center text-sm font-medium hover:bg-gray-100';
+                    btn.addEventListener('click', function() {
+                        // Remove selected class from all buttons
+                        document.querySelectorAll('.timeslot-btn').forEach(b => b.classList.remove('selected'));
+                        // Add selected class to the clicked button
+                        this.classList.add('selected');
+                        selectedTimeInput.value = this.dataset.time;
+                        updateNextButtonState();
+                    });
+                    timeSlotsEl.appendChild(btn);
+                }
+            }
+            
+            function updateNextButtonState() {
+                if (selectedDateInput.value && selectedTimeInput.value) {
+                    nextBtn.disabled = false;
+                } else {
+                    nextBtn.disabled = true;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

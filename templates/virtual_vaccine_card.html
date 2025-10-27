@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Virtual Vaccination Card</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: margin-left 0.3s ease;
+        }
+        .main-bg {
+            background: url('/static/icons/background.png') center center / cover no-repeat fixed;
+            background-blend-mode: overlay;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .sidebar {
+            height: 100%;
+            width: 280px; /* Set a fixed width */
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: -280px; /* Start off-screen */
+            background-color: white;
+            overflow-x: hidden;
+            transition: left 0.3s ease-in-out;
+            padding-top: 20px;
+            border-right: 2px solid #A52A2A;
+        }
+
+        body.sidebar-open .sidebar {
+            left: 0; /* Slide in */
+        }
+        .sidebar .profile-section {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .sidebar .profile-initial {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #A52A2A;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0 auto 15px;
+            text-transform: uppercase;
+        }
+        .sidebar a {
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #f1f1f1;
+            color: #A52A2A;
+        }
+        .sidebar a .fa-icon {
+            width: 30px;
+            margin-right: 15px;
+            text-align: center;
+        }
+        /* .closebtn removed (no longer used) */
+        .menu-icon {
+            cursor: pointer;
+            font-size: 24px;
+            color: white;
+            margin-right: 15px;
+        }
+        .main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        body.sidebar-open .main-content {
+            margin-left: 280px;
+        }
+
+        /* Card specific styles */
+        .card-wrap { max-width: 1000px; margin: 40px auto; }
+        .card { border: 8px solid #ddd; padding: 18px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+        .left-panel { background:#c71f1f; color:white; padding:26px; }
+        .logo-row { display:flex; align-items:center; justify-content:space-between; }
+        .logo-row img { height:56px; }
+        .field-line { border-bottom:1px dashed #ddd; height:1.4rem; }
+        .small-note { font-size:0.85rem; color:#555; }
+        /* Make it responsive */
+        @media (max-width: 768px) {
+            .card { padding:12px; }
+            .left-panel { padding:18px; }
+        }
+        /* print styles: print only the card (A4 landscape) */
+        @media print {
+            body * { visibility: hidden; }
+            .card, .card * { visibility: visible; }
+            /* nudge the card slightly left when printing to prevent any overflow */
+            .card { box-sizing: border-box; position: absolute; left: 6mm; top: 12mm; width: calc(297mm - 24mm); max-width: 273mm; }
+            header, .sidebar, .arrow { display: none !important; }
+            .print-btn { display: none !important; visibility: hidden !important; }
+            @page { size: A4 landscape; margin: 12mm; }
+            .card { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 sidebar-open">
+    {% include '_user_sidebar.html' %}
+
+    <div id="main" class="main-content">
+        <!-- Header -->
+        <header class="bg-red-800 text-white shadow-md sticky top-0 z-50">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="menu-icon" onclick="toggleNav()">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </div>
+                    <a href="{{ url_for('home') }}" class="flex items-center space-x-3 ml-2">
+                        <div class="h-12 w-auto flex items-center">
+                            <img src="/static/icons/Logo 1.png" alt="Dr. Care Animal Bite Center Naic Logo" class="h-full w-auto">
+                        </div>
+                        <span class="text-xl font-semibold">Dr. Care Animal Bite Center Naic</span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <button class="print-btn bg-white text-red-700 px-3 py-1 rounded" onclick="window.print()">Print card</button>
+                </div>
+            </nav>
+        </header>
+
+        <div class="card-wrap" style="padding: 20px;">
+            <div class="card bg-white rounded-lg overflow-hidden" style="border: 6px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position:relative;">
+                <div class="flex flex-col md:flex-row" style="min-height: 420px;">
+                    <!-- LEFT RED PANEL with logo -->
+                    <div class="left-panel md:w-1/2 px-6 py-6 flex flex-col justify-between" style="background-color: #c71f1f;">
+                        <!-- (top logo removed - replaced at bottom) -->
+
+                        <!-- MGA DAPAT TANDAAN Title -->
+                        <h2 class="text-2xl font-bold mb-4 text-white text-center">MGA DAPAT TANDAAN</h2>
+
+                        <!-- Instructions list -->
+                        <ul class="space-y-2 text-xs leading-tight text-white font-medium flex-grow">
+                            <li>• BAWAL uminom ng alak ng 30 days.</li>
+                            <li>• BAWAL kumain ng manok, itlog, hipon, bagoong, patis at malalansang pagkain.</li>
+                            <li>• Kung turturukan ng ERIG, iwasan ang Frozen Foods, fishy-smelling foods, canned foods, noodles, chocolate peanut and junk foods.</li>
+                            <li>• Panatilihing tuyo at iwasang galawin ang sugat sa loob ng 8 oras.</li>
+                            <li>• Magpapakuntila kung lumalala ang pamamaga, pamamaga o kirot.</li>
+                            <li>• Maaaring maging allergic sa paracetamol; lamang allergy sa paracetamol.</li>
+                        </ul>
+
+                        <!-- Bottom clinic logos and text (logoPalatandaan + hand logo) -->
+                        <div class="mt-6 flex items-center">
+                            <img src="{{ url_for('cardicons', filename='logoPalatandaan.png') }}" alt="Dr Care Logo" class="h-10 mr-2 object-contain">
+                            <img src="{{ url_for('cardicons', filename='HandLogo.png') }}" alt="Hand Logo" class="h-8 mr-0 object-contain">
+                        </div>
+                    </div>
+
+                    <!-- RIGHT WHITE CARD PANEL -->
+                    <div class="md:w-1/2 px-6 py-6 flex flex-col bg-white" style="border-left: 1px solid #ddd;">
+                        <!-- Header with logo and DOH badge (text removed) -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center flex-1">
+                                <img src="{{ url_for('cardicons', filename='NoBGLOGO.png') }}" alt="Logo" class="h-12 mr-2 object-contain">
+                            </div>
+                        </div>
+
+                        <!-- Form fields -->
+                        <div class="space-y-3 flex-grow">
+                            <div>
+                                <label class="text-xs font-bold text-gray-800 block">NAME:</label>
+                                <div class="border-b-2 border-gray-400 pb-1 text-sm text-gray-700">{{ user.name or '_____________________________________' }}</div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-gray-800 block">AGE/GENDER:</label>
+                                <div class="border-b-2 border-gray-400 pb-1 text-sm text-gray-700">&nbsp;</div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-gray-800 block">CONTACT NUMBER:</label>
+                                <div class="border-b-2 border-gray-400 pb-1 text-sm text-gray-700">&nbsp;</div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-gray-800 block">ABC CENTER BRANCH:</label>
+                                <div class="border-b-2 border-gray-400 pb-1 text-sm text-gray-700">&nbsp;</div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-gray-800 block">ADDRESS:</label>
+                                <div class="border-b-2 border-gray-400 pb-1 text-sm text-gray-700">&nbsp;</div>
+                            </div>
+                        </div>
+
+                        <!-- Contact info section at bottom -->
+                        <div class="mt-4 border-t-2 border-gray-300 pt-3">
+                            <label class="text-xs font-bold text-gray-800 block mb-2">FOR MORE INFO KINDLY CALL / MESSAGE US</label>
+                            <div class="space-y-1 mb-3 text-xs text-gray-700">
+                                <div class="flex items-center">
+                                    <img src="{{ url_for('cardicons', filename='phone-call.png') }}" alt="Phone" class="h-4 mr-2 object-contain">
+                                    <span class="font-bold">0953 7207 342 / 0908 7029 139</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <img src="{{ url_for('cardicons', filename='FB.png') }}" alt="Facebook" class="h-4 mr-2 object-contain">
+                                    <span class="font-bold">DR. CARE ANIMAL BITE CENTER - NAIC</span>
+                                </div>
+                                <div class="flex items-start mt-1 text-xs text-gray-700">
+                                    <div class="flex-shrink-0 mr-2"><img src="{{ url_for('cardicons', filename='map.png') }}" alt="Map" class="h-4 object-contain"></div>
+                                    <div class="flex-1"><span class="font-bold">2nd Floor Beside Palawan Express P, Poblete St, Bgy. Gomez - Zamora Naic, Cavite (Near Naic Town Plaza)</span></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div></div>
+                                <div class="flex items-center space-x-2">
+                                    <img src="{{ url_for('cardicons', filename='DOHnobg.png') }}" alt="DOH Badge" class="h-10 object-contain">
+                                    <img src="{{ url_for('cardicons', filename='RabiesFree.jpg') }}" alt="Rabies Free Badge" class="h-20 object-contain">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleNav() {
+            document.body.classList.toggle('sidebar-open');
+        }
+
+        function closeNav() {
+            document.body.classList.remove('sidebar-open');
+        }
+
+        // Close sidebar when clicking outside of it on mobile
+        document.getElementById('main').addEventListener('click', function(event) {
+            if (document.body.classList.contains('sidebar-open') && 
+                !event.target.closest('.sidebar') && 
+                !event.target.closest('.menu-icon')) {
+                closeNav();
+            }
+        });
+        
+        // Prevent clicks inside sidebar from closing it
+        document.querySelector('.sidebar').addEventListener('click', function(event) {
+            event.stopPropagation();
+            if (event.target.tagName === 'A' || event.target.closest('a')) {
+                setTimeout(closeNav, 300);
+            }
+        });
+
+        
+    </script>
+</body>
+        <!-- Flip arrow to back of card -->
+        <a href="{{ url_for('virtual_vaccine_card_back') }}" style="position:fixed; right:28px; bottom:20px; background:white; border-radius:999px; padding:10px; box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:60;">
+            <i class="fas fa-arrow-right"></i>
+        </a>
+    
+    </body>
+    </html>

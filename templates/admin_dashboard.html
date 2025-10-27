@@ -1,0 +1,509 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Dashboard - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <main class="col-12 px-4 py-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                <h1 class="welcome-header">
+                    Dashboard Overview
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-download me-1"></i> Export
+                        </button>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-calendar3 me-1"></i> This Month
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li><a class="dropdown-item" href="#">Today</a></li>
+                            <li><a class="dropdown-item" href="#">This Week</a></li>
+                            <li><a class="dropdown-item" href="#">This Month</a></li>
+                            <li><a class="dropdown-item" href="#">This Year</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards - Updated for Appointments Focus -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card h-100 stat-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="stat-label">TOTAL APPOINTMENTS</h6>
+                                    <h2 class="stat-number">{{ total_appointments }}</h2>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                                    <i class="bi bi-calendar-check text-primary" style="font-size: 1.8rem;"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="text-success"><i class="bi bi-arrow-up"></i> 15% from last month</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 stat-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="stat-label">APPROVED APPOINTMENTS</h6>
+                                    <h2 class="stat-number">{{ approved_appointments }}</h2>
+                                </div>
+                                <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                                    <i class="bi bi-check-circle text-success" style="font-size: 1.8rem;"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="text-success"><i class="bi bi-arrow-up"></i> 8% from last month</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 stat-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="stat-label">PENDING APPOINTMENTS</h6>
+                                    <h2 class="stat-number">{{ pending_appointments }}</h2>
+                                </div>
+                                <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                                    <i class="bi bi-clock text-warning" style="font-size: 1.8rem;"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <a href="{{ url_for('appointments.list_appointments') }}?status=pending" class="text-decoration-none">
+                                    View pending <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Charts -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-white border-0 pt-3">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>Analytics Overview
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Appointment Status Distribution -->
+                                <div class="col-lg-6 mb-4">
+                                    <h6 class="mb-3">Appointment Status Distribution</h6>
+                                    <div style="position: relative; height: 300px;">
+                                        <canvas id="appointmentStatusChart"></canvas>
+                                    </div>
+                                </div>
+                                <!-- Service Popularity -->
+                                <div class="col-lg-6 mb-4">
+                                    <h6 class="mb-3">Service Popularity</h6>
+                                    <div style="position: relative; height: 300px;">
+                                        <canvas id="servicePopularityChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- Weekly Sales -->
+                                <div class="col-lg-6 mb-4">
+                                    <h6 class="mb-3">Weekly Sales</h6>
+                                    <div style="position: relative; height: 250px;">
+                                        <canvas id="weeklySalesChart"></canvas>
+                                    </div>
+                                </div>
+                                <!-- Appointment Booking Trends -->
+                                <div class="col-lg-6 mb-4">
+                                    <h6 class="mb-3">Appointment Booking Trends</h6>
+                                    <div style="position: relative; height: 250px;">
+                                        <canvas id="appointmentTrendsChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Appointments -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-white border-0 pt-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar-check me-2"></i>Recent Appointments
+                                </h5>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View All
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-outline-primary" id="refreshAppointments">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for appointment in recent_appointments %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    {% if appointment['status'] == 'completed' %}
+                                                        <i class="fas fa-check-circle text-success"></i>
+                                                    {% elif appointment['status'] == 'confirmed' %}
+                                                        <i class="fas fa-clock text-primary"></i>
+                                                    {% elif appointment['status'] == 'cancelled' %}
+                                                        <i class="fas fa-times-circle text-danger"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-question-circle text-warning"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        {{ appointment['patient_name'] }}
+                                                        <span class="badge bg-{% if appointment['status'] == 'completed' %}success{% elif appointment['status'] == 'confirmed' %}primary{% elif appointment['status'] == 'cancelled' %}danger{% else %}warning{% endif %} ms-2">
+                                                            {{ appointment['status']|title }}
+                                                        </span>
+                                                    </h6>
+                                                    <p class="mb-0 text-muted">
+                                                        {{ appointment['service'] }} • {{ appointment['appointment_date'] }}
+                                                        {% if appointment['user_name'] %}
+                                                            <span class="ms-2"><i class="fas fa-user"></i> {{ appointment['user_name'] }}</span>
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">{{ appointment['appointment_time'] }}</small>
+                                            <div class="mt-1">
+                                                <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment['id']) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="text-center p-4">
+                                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No recent appointments</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mb-4">
+                        <div class="card-header bg-white border-0 pt-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-users me-2"></i>Recent Users
+                                </h5>
+                                <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View All
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Joined</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in recent_users %}
+                                        <tr>
+                                            <td>{{ user['name'] }}</td>
+                                            <td>{{ user['email'] }}</td>
+                                            <td>{{ user['created_at'].split('T')[0] if user['created_at'] else 'N/A' }}</td>
+                                            <td>
+                                                <a href="{{ url_for('admin_view_user', user_id=user['id']) }}" class="btn btn-sm btn-info" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center">No users found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Chart data from database
+const chartData = {
+    service_labels: {{ (chart_data.get('service_labels', []))|tojson }},
+    service_values: {{ (chart_data.get('service_values', []))|tojson }},
+    appointment_status_labels: {{ (chart_data.get('appointment_status_labels', []))|tojson }},
+    appointment_status_values: {{ (chart_data.get('appointment_status_values', []))|tojson }},
+    weekly_appointment_labels: {{ (chart_data.get('weekly_appointment_labels', []))|tojson }},
+    weekly_appointment_values: {{ (chart_data.get('weekly_appointment_values', []))|tojson }}
+        ,
+        weekly_sales_labels: {{ (chart_data.get('weekly_sales_labels', []))|tojson }},
+        weekly_sales_values: {{ (chart_data.get('weekly_sales_values', []))|tojson }}
+};
+</script>
+<script>
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('active');
+    document.querySelector('.main-content').classList.toggle('active');
+}
+
+// Initialize tooltips, refresh button, and charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+    
+    // Refresh appointments button
+    document.getElementById('refreshAppointments')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        const icon = this.querySelector('i');
+        icon.classList.add('fa-spin');
+
+        // Simulate refresh (in a real app, this would be an AJAX call)
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    });
+
+    // Initialize charts
+    initializeCharts();
+});
+
+function initializeCharts() {
+    try {
+        console.log('Initializing charts with data:', chartData);
+
+        // Check if we have valid data for each chart
+        const hasAppointmentStatusData = chartData.appointment_status_labels && chartData.appointment_status_labels.length > 0;
+        const hasServiceData = chartData.service_labels && chartData.service_labels.length > 0;
+        const hasWeeklyData = chartData.weekly_appointment_labels && chartData.weekly_appointment_labels.length > 0;
+    const hasSalesData = chartData.weekly_sales_labels && chartData.weekly_sales_labels.length > 0;
+
+        // Appointment Status Distribution Chart (Pie Chart)
+        if (hasAppointmentStatusData) {
+            const appointmentStatusCtx = document.getElementById('appointmentStatusChart');
+            if (appointmentStatusCtx) {
+                const appointmentStatusChart = new Chart(appointmentStatusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.appointment_status_labels,
+                        datasets: [{
+                            data: chartData.appointment_status_values,
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.8)',
+                                'rgba(75, 192, 192, 0.8)',
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(255, 205, 86, 0.8)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            console.log('No appointment status data available');
+        }
+
+        // Service Popularity Chart (Bar Chart)
+        if (hasServiceData) {
+            const servicePopularityCtx = document.getElementById('servicePopularityChart');
+            if (servicePopularityCtx) {
+                const servicePopularityChart = new Chart(servicePopularityCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.service_labels,
+                        datasets: [{
+                            label: 'Appointments',
+                            data: chartData.service_values,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgb(75, 192, 192)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            console.log('No service data available');
+        }
+
+        // Weekly Sales Chart (Line with area)
+        if (hasSalesData) {
+            const weeklySalesCtx = document.getElementById('weeklySalesChart');
+            if (weeklySalesCtx) {
+                const ctx = weeklySalesCtx.getContext('2d');
+                // create gradient
+                const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+                gradient.addColorStop(0, 'rgba(99, 102, 241, 0.6)');
+                gradient.addColorStop(1, 'rgba(99, 102, 241, 0.05)');
+
+                const weeklySalesChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.weekly_sales_labels,
+                        datasets: [{
+                            label: 'Sales (PHP)',
+                            data: chartData.weekly_sales_values,
+                            backgroundColor: gradient,
+                            borderColor: 'rgba(99,102,241,1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        } else {
+            console.log('No weekly sales data available');
+        }
+
+        // Appointment Booking Trends Chart (Bar Chart)
+        if (hasWeeklyData) {
+            const appointmentTrendsCtx = document.getElementById('appointmentTrendsChart');
+            if (appointmentTrendsCtx) {
+                const appointmentTrendsChart = new Chart(appointmentTrendsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.weekly_appointment_labels,
+                        datasets: [{
+                            label: 'Appointments',
+                            data: chartData.weekly_appointment_values,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgb(75, 192, 192)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            console.log('No weekly appointment data available');
+        }
+
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+    }
+}
+</script>
+{% endblock %}

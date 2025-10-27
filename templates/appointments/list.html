@@ -1,0 +1,233 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Manage Appointments{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Manage Appointments</h1>
+        <a href="{{ url_for('appointments.manage_appointment') }}" class="btn btn-outline-danger">
+            <i class="fas fa-plus fa-sm"></i> Add New Appointment
+        </a>
+    </div>
+
+    <!-- Enhanced Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-muted">
+                    <i class="fas fa-filter me-2 text-primary"></i>Search & Filter Appointments
+                </h6>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                    <i class="fas fa-chevron-up"></i> Toggle Filters
+                </button>
+            </div>
+        </div>
+        <div class="collapse show" id="filterCollapse">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('appointments.list_appointments') }}" class="row g-3">
+                    <!-- Patient Name Search -->
+                    <div class="col-md-4">
+                        <label for="patient_name" class="form-label text-muted small mb-1">
+                            <i class="fas fa-user me-1"></i>Patient Name
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="patient_name" name="patient_name"
+                                   class="form-control border-start-0"
+                                   placeholder="Search by patient name..."
+                                   value="{{ request.args.get('patient_name', '') }}">
+                        </div>
+                    </div>
+
+                    <!-- Service Filter -->
+                    <div class="col-md-3">
+                        <label for="service" class="form-label text-muted small mb-1">
+                            <i class="fas fa-stethoscope me-1"></i>Service
+                        </label>
+                        <select id="service" name="service" class="form-select">
+                            <option value="">All Services</option>
+                            {% for service in services %}
+                            <option value="{{ service }}" {% if request.args.get('service') == service %}selected{% endif %}>{{ service }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="col-md-2">
+                        <label for="status" class="form-label text-muted small mb-1">
+                            <i class="fas fa-info-circle me-1"></i>Status
+                        </label>
+                        <select id="status" name="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if request.args.get('status') == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Range -->
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small mb-1">
+                            <i class="fas fa-calendar-alt me-1"></i>Date Range
+                        </label>
+                        <div class="input-group">
+                            <input type="date" name="start_date"
+                                   class="form-control"
+                                   value="{{ request.args.get('start_date', '') }}"
+                                   title="Start Date">
+                            <span class="input-group-text bg-light border-0 text-muted">to</span>
+                            <input type="date" name="end_date"
+                                   class="form-control"
+                                   value="{{ request.args.get('end_date', '') }}"
+                                   title="End Date">
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12 mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                                <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-undo me-2"></i>Reset
+                                </a>
+                            </div>
+                            <div class="text-muted small">
+                                {% if request.args %}
+                                    <span class="badge bg-info">{{ appointments|length }} results found</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold" style="color: #e84118;">
+                <i class="fas fa-calendar-check me-2"></i>All Appointments
+            </h6>
+            <a href="{{ url_for('appointments.export_appointments', **request.args) }}" class="btn btn-success btn-sm">
+                <i class="fas fa-file-csv fa-sm me-1"></i>Export to CSV
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" class="form-check-input"></th>
+                            <th><i class="fas fa-clock me-1"></i>Date & Time</th>
+                            <th><i class="fas fa-user me-1"></i>Patient</th>
+                            <th><i class="fas fa-paw me-1"></i>Animal</th>
+                            <th><i class="fas fa-map-marker-alt me-1"></i>Bite Location</th>
+                            <th><i class="fas fa-stethoscope me-1"></i>Service</th>
+                            <th><i class="fas fa-user-md me-1"></i>Booked By</th>
+                            <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                            <th><i class="fas fa-check-circle me-1"></i>Completed</th>
+                            <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in appointments %}
+                        <tr>
+                            <td><input type="checkbox" name="appointment_ids" value="{{ appt.id }}" class="form-check-input"></td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <strong>{{ appt.appointment_date | datetimeformat('%b %d, %Y') }}</strong>
+                                    <small class="text-muted">{{ appt.appointment_time }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ appt.patient_name }}</strong>
+                                    {% if appt.patient_phone %}
+                                    <br><small class="text-muted">{{ appt.patient_phone }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {%- if appt.animal_type == 'etc' and appt.animal_etc_text -%}
+                                    <span class="badge bg-light text-dark">{{ appt.animal_etc_text }}</span>
+                                {%- else -%}
+                                    <span class="badge bg-light text-dark">{{ appt.animal_type or 'N/A' }}</span>
+                                {%- endif -%}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ appt.bite_location or 'N/A' }}</span>
+                            </td>
+                            <td>{{ appt.service }}</td>
+                            <td>{{ appt.user_name }}</td>
+                            <td>
+                                <span class="badge bg-{% if appt.status == 'confirmed' %}success{% elif appt.status == 'completed' %}info{% elif appt.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                                    {{ appt.status | capitalize }}
+                                </span>
+                            </td>
+                            <td>{{ (appt.updated_at | datetimeformat('%b %d, %Y')) if appt.status == 'completed' else 'N/A' }}</td>
+                            <td>
+                                <a href="{{ url_for('appointments.view_appointment', appointment_id=appt.id) }}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                                    <h5>No appointments found</h5>
+                                    <p>Try adjusting your search filters or add a new appointment.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Handle the 'select all' checkbox
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll) {
+        selectAll.addEventListener('click', function(event) {
+            const checkboxes = document.getElementsByName('appointment_ids');
+            for (const checkbox of checkboxes) {
+                checkbox.checked = event.target.checked;
+            }
+        });
+    }
+
+    // Enhanced filter toggle functionality
+    const toggleBtn = document.querySelector('[data-bs-target="#filterCollapse"]');
+    const filterCollapse = document.getElementById('filterCollapse');
+
+    if (toggleBtn && filterCollapse) {
+        toggleBtn.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (filterCollapse.classList.contains('show')) {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

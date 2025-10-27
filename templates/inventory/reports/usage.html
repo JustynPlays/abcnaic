@@ -1,0 +1,497 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Inventory Usage Report - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Inventory Usage Report</h1>
+        <div>
+            <a href="{{ url_for('inventory.inventory_reports', type='stock_levels') }}" class="btn btn-sm btn-primary me-2">
+                <i class="fas fa-boxes"></i> Stock Levels
+            </a>
+            <a href="{{ url_for('inventory.inventory_reports', type='expiring_soon') }}" class="btn btn-sm btn-warning me-2">
+                <i class="fas fa-clock"></i> Expiring Soon
+            </a>
+            <button class="btn btn-sm btn-secondary" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+        </div>
+    </div>
+    
+    <!-- Report Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter"></i> Report Filters
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <input type="hidden" name="type" value="usage">
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                           value="{{ start_date }}" max="{{ now().strftime('%Y-%m-%d') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" 
+                           value="{{ end_date }}" max="{{ now().strftime('%Y-%m-%d') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.args.get('category')|int == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div>
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <a href="{{ url_for('inventory.inventory_reports', type='usage') }}" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Items Tracked
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ usage_summary|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Stock In
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%0.2f"|format(usage_summary|sum(attribute='total_in')) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-down fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Total Stock Out
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%0.2f"|format(usage_summary|sum(attribute='total_out')) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Net Change
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%+0.2f"|format(usage_summary|sum(attribute='net_change')) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Usage Summary Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-table"></i> Inventory Usage Summary
+                <small class="text-muted ms-2">({{ start_date }} to {{ end_date }})</small>
+            </h6>
+            <div>
+                <a href="{{ url_for('inventory.inventory_dashboard') }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if usage_summary %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th class="text-end">Starting Qty</th>
+                            <th class="text-end">Stock In</th>
+                            <th class="text-end">Stock Out</th>
+                            <th class="text-end">Net Change</th>
+                            <th class="text-end">Ending Qty</th>
+                            <th>Usage Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in usage_summary %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('inventory.manage_inventory_item', item_id=item.id) }}" class="text-primary">
+                                    {{ item.name }}
+                                </a>
+                                <div class="small text-muted">{{ item.unit }}</div>
+                            </td>
+                            <td class="text-end">{{ "%0.2f"|format(item.starting_quantity) if item.starting_quantity is not none else '-' }}</td>
+                            <td class="text-end text-success">{{ "%0.2f"|format(item.total_in) if item.total_in > 0 else '-' }}</td>
+                            <td class="text-end text-danger">{{ "%0.2f"|format(item.total_out) if item.total_out > 0 else '-' }}</td>
+                            <td class="text-end">
+                                {% if item.net_change > 0 %}
+                                    <span class="text-success">+{{ "%0.2f"|format(item.net_change) }}</span>
+                                {% elif item.net_change < 0 %}
+                                    <span class="text-danger">{{ "%0.2f"|format(item.net_change) }}</span>
+                                {% else %}
+                                    {{ "%0.2f"|format(item.net_change) }}
+                                {% endif %}
+                            </td>
+                            <td class="text-end font-weight-bold">
+                                {{ "%0.2f"|format(item.ending_quantity) if item.ending_quantity is not none else '-' }}
+                            </td>
+                            <td>
+                                {% if item.trend > 0 %}
+                                    <i class="fas fa-arrow-up text-success" title="Increasing"></i>
+                                    <span class="text-success">{{ "%0.0f"|format(item.trend) }}%</span>
+                                {% elif item.trend < 0 %}
+                                    <i class="fas fa-arrow-down text-danger" title="Decreasing"></i>
+                                    <span class="text-danger">{{ "%0.0f"|format(-item.trend) }}%</span>
+                                {% else %}
+                                    <i class="fas fa-equals text-muted" title="No change"></i>
+                                    <span class="text-muted">0%</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="font-weight-bold">
+                        <tr>
+                            <td>Total</td>
+                            <td class="text-end">{{ "%0.2f"|format(usage_summary|sum(attribute='starting_quantity')) if usage_summary|sum(attribute='starting_quantity') is not none else '-' }}</td>
+                            <td class="text-end text-success">{{ "%0.2f"|format(usage_summary|sum(attribute='total_in')) }}</td>
+                            <td class="text-end text-danger">{{ "%0.2f"|format(usage_summary|sum(attribute='total_out')) }}</td>
+                            <td class="text-end">{{ "%+0.2f"|format(usage_summary|sum(attribute='net_change')) }}</td>
+                            <td class="text-end">{{ "%0.2f"|format(usage_summary|sum(attribute='ending_quantity')) if usage_summary|sum(attribute='ending_quantity') is not none else '-' }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-chart-line fa-3x text-gray-400 mb-3"></i>
+                <h5>No usage data available</h5>
+                <p class="text-muted">No inventory transactions were found for the selected period.</p>
+                <a href="{{ url_for('inventory.record_inventory_transaction') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Record Transaction
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer small text-muted">
+            Report generated on {{ now()|datetimeformat('%Y-%m-%d %H:%M') }} | 
+            Date range: {{ start_date }} to {{ end_date }}
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    {% if usage_summary %}
+    <div class="row">
+        <!-- Top Items by Usage -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie"></i> Top Items by Usage
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="usagePieChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> Stock In
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-danger"></i> Stock Out
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Monthly Usage Trend -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line"></i> Monthly Usage Trend
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="monthlyTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Export Options -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-file-export"></i> Export Options
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-success" onclick="exportToCSV()">
+                    <i class="fas fa-file-csv"></i> Export to CSV
+                </button>
+                <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf"></i> Export to PDF
+                </button>
+                <button type="button" class="btn btn-info" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> Export to Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Page level plugins -->
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chart.js/Chart.min.js') }}"></script>
+
+<!-- Page level custom scripts -->
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#dataTable').DataTable({
+            "order": [[4, "desc"]], // Sort by net change by default
+            "pageLength": 25,
+            "responsive": true,
+            "dom": '<"top"f>rt<"bottom"ilp><"clear">',
+            "language": {
+                "search": "Search items:",
+                "lengthMenu": "Show _MENU_ entries per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered from _MAX_ total entries)",
+                "zeroRecords": "No matching items found"
+            }
+        });
+        
+        // Initialize charts if data is available
+        {% if usage_summary %}
+        // Pie Chart for Top Items by Usage
+        var ctx = document.getElementById("usagePieChart");
+        var myPieChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    {% for item in usage_summary|sort(attribute='total_out', reverse=true)|slice(5) %}
+                        "{{ item.name|truncate(20) }}"{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                datasets: [{
+                    data: [
+                        {% for item in usage_summary|sort(attribute='total_out', reverse=true)|slice(5) %}
+                            {{ item.total_out }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                    hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#be2617'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                },
+                legend: {
+                    display: false
+                },
+                cutoutPercentage: 70,
+            },
+        });
+        
+        // Area Chart for Monthly Usage Trend
+        var ctx2 = document.getElementById("monthlyTrendChart");
+        var myLineChart = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                datasets: [{
+                    label: "Stock In",
+                    lineTension: 0.3,
+                    backgroundColor: "rgba(78, 115, 223, 0.05)",
+                    borderColor: "rgba(78, 115, 223, 1)",
+                    pointRadius: 3,
+                    pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                    pointBorderColor: "rgba(78, 115, 223, 1)",
+                    pointHoverRadius: 3,
+                    pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                    pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                    pointHitRadius: 10,
+                    pointBorderWidth: 2,
+                    data: [65, 59, 80, 81, 56, 55, 40, 30, 45, 60, 70, 75],
+                },{
+                    label: "Stock Out",
+                    lineTension: 0.3,
+                    backgroundColor: "rgba(231, 74, 59, 0.05)",
+                    borderColor: "rgba(231, 74, 59, 1)",
+                    pointRadius: 3,
+                    pointBackgroundColor: "rgba(231, 74, 59, 1)",
+                    pointBorderColor: "rgba(231, 74, 59, 1)",
+                    pointHoverRadius: 3,
+                    pointHoverBackgroundColor: "rgba(231, 74, 59, 1)",
+                    pointHoverBorderColor: "rgba(231, 74, 59, 1)",
+                    pointHitRadius: 10,
+                    pointBorderWidth: 2,
+                    data: [45, 40, 60, 65, 45, 40, 30, 25, 35, 50, 55, 60],
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        gridLines: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 7
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            maxTicksLimit: 5,
+                            padding: 10,
+                            callback: function(value, index, values) {
+                                return value;
+                            }
+                        },
+                        gridLines: {
+                            color: "rgb(234, 236, 244)",
+                            zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
+                        }
+                    }],
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                },
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    titleMarginBottom: 10,
+                    titleFontColor: '#6e707e',
+                    titleFontSize: 14,
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    intersect: false,
+                    mode: 'index',
+                    caretPadding: 10,
+                }
+            }
+        });
+        {% endif %}
+    });
+    
+    // Export functions
+    function exportToCSV() {
+        // Implement CSV export
+        alert('Export to CSV functionality will be implemented here.');
+    }
+    
+    function exportToPDF() {
+        // Implement PDF export
+        alert('Export to PDF functionality will be implemented here.');
+    }
+    
+    function exportToExcel() {
+        // Implement Excel export
+        alert('Export to Excel functionality will be implemented here.');
+    }
+</script>
+{% endblock %}

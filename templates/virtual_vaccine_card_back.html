@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Virtual Vaccination Card - Back</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: margin-left 0.3s ease;
+        }
+        .main-bg {
+            background: url('/static/icons/background.png') center center / cover no-repeat fixed;
+            background-blend-mode: overlay;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .sidebar {
+            height: 100%;
+            width: 280px; /* Set a fixed width */
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: -280px; /* Start off-screen */
+            background-color: white;
+            overflow-x: hidden;
+            transition: left 0.3s ease-in-out;
+            padding-top: 20px;
+            border-right: 2px solid #A52A2A;
+        }
+
+        body.sidebar-open .sidebar {
+            left: 0; /* Slide in */
+        }
+        .sidebar .profile-section {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .sidebar .profile-initial {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #A52A2A;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0 auto 15px;
+            text-transform: uppercase;
+        }
+        .sidebar a {
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #f1f1f1;
+            color: #A52A2A;
+        }
+        .sidebar a .fa-icon {
+            width: 30px;
+            margin-right: 15px;
+            text-align: center;
+        }
+        /* .closebtn removed (no longer used) */
+        .menu-icon {
+            cursor: pointer;
+            font-size: 24px;
+            color: white;
+            margin-right: 15px;
+        }
+        .main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        body.sidebar-open .main-content {
+            margin-left: 280px;
+        }
+
+    /* Card specific styles */
+    .card-wrap { max-width: 1000px; margin: 40px auto; }
+    .card { border: 8px solid #ddd; padding: 18px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+    /* make all card text bold */
+    .card, .card * { font-weight: 700; }
+    .red-pill { background:#fff; border-radius:999px; border:2px solid #d33; padding:6px 18px; color:#d33; font-weight:700; }
+    /* pill styles */
+    .pill { display:inline-block; background:#fff; border-radius:999px; border:2px solid #dc2626; padding:5px 16px; color:#dc2626; font-weight:700; font-size:11px; text-transform:uppercase; }
+    .pill-filled { display:inline-block; background:#dc2626; border-radius:999px; border:2px solid #dc2626; padding:5px 16px; color:#fff; font-weight:700; font-size:11px; text-transform:uppercase; }
+    /* left-specific uniform pill sizing */
+    .pill-left { min-width: 220px; max-width: 260px; display:inline-block; text-align:center; }
+        .table-cell { border:1px solid #aaa; padding:6px; }
+        /* radio group centering */
+        .radio-group { display:flex; justify-content:center; gap:18px; align-items:center; }
+        .arrow { position: fixed; right: 28px; bottom: 20px; background: white; border-radius: 999px; padding:10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        /* Make it responsive */
+        @media (max-width: 768px) {
+            .card { padding:12px; }
+        }
+        /* print styles: print only the card (A4 landscape) */
+        @media print {
+            body * { visibility: hidden; }
+            .card, .card * { visibility: visible; }
+            .card { box-sizing: border-box; position: absolute; left: 6mm; top: 12mm; width: calc(297mm - 24mm); max-width: 273mm; }
+            header, .sidebar, .arrow { display: none !important; }
+            .print-btn { display: none !important; visibility: hidden !important; }
+            @page { size: A4 landscape; margin: 12mm; }
+            .card { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    {% include '_user_sidebar.html' %}
+    <div id="main" class="main-content">
+        <!-- Header -->
+        <header class="bg-red-800 text-white shadow-md sticky top-0 z-50">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="menu-icon" onclick="toggleNav()">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </div>
+                    <a href="{{ url_for('home') }}" class="flex items-center space-x-3 ml-2">
+                        <div class="h-12 w-auto flex items-center">
+                            <img src="/static/icons/Logo 1.png" alt="Dr. Care Animal Bite Center Naic Logo" class="h-full w-auto">
+                        </div>
+                        <span class="text-xl font-semibold">Dr. Care Animal Bite Center Naic</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button class="print-btn bg-white text-red-700 px-3 py-1 rounded" onclick="window.print()">Print card</button>
+                </div>
+            </nav>
+        </header>
+
+        <div class="card-wrap" style="padding: 20px;">
+            <div class="card bg-white rounded-lg overflow-hidden" style="border: 6px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div class="flex flex-col md:flex-row" style="min-height: 420px;">
+                    <!-- LEFT PANEL - White background with form fields -->
+                    <div class="md:w-1/2 px-6 py-6 flex flex-col justify-start bg-white">
+                        <!-- History of Exposure -->
+                        <div class="mb-3">
+                            <div style="text-align:center;"><div class="pill pill-left">HISTORY OF EXPOSURE</div></div>
+                            <div class="mt-2 text-xs text-gray-900 space-y-1">
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:90px;">DATE:</span>
+                                    <div style="flex:1; border-bottom:1px solid #333; height:18px;"></div>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:90px;">PLACE:</span>
+                                    <div style="flex:1; border-bottom:1px solid #333; height:18px;"></div>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:90px;">TYPE OF ANIMAL:</span>
+                                    <div style="flex:1;"><div class="radio-group">
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="animal" style="margin:0;"> DOG</label>
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="animal" style="margin:0;"> CAT</label>
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="animal" style="margin:0;"> ETC.</label>
+                                    </div></div>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:90px;">TYPE OF EXPOSURE:</span>
+                                    <div style="flex:1;"><div class="radio-group">
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="exposure" style="margin:0;"> BITE</label>
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="exposure" style="margin:0;"> SCRATCH</label>
+                                    </div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Condition of Animals -->
+                        <div class="mb-3">
+                            <div style="text-align:center;"><div class="pill pill-left">CONDITION OF ANIMALS</div></div>
+                            <div class="mt-2 text-xs text-gray-900"><div class="radio-group">
+                                <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="condition" style="margin:0;"> HEALTHY</label>
+                                <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="condition" style="margin:0;"> LOST</label>
+                                <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="condition" style="margin:0;"> SICK</label>
+                                <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="condition" style="margin:0;"> DIED</label>
+                            </div></div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <div style="text-align:center;"><div class="pill pill-left">CATEGORY</div></div>
+                            <div class="mt-2 text-xs text-gray-900"><div class="radio-group">
+                                <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="category" style="margin:0;"> I</label>
+                                <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="category" style="margin:0;"> II</label>
+                                <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="category" style="margin:0;"> III</label>
+                            </div></div>
+                        </div>
+
+                        <!-- Vaccine Used -->
+                        <div class="mb-3">
+                            <div style="text-align:center;"><div class="pill pill-left">VACCINE USED</div></div>
+                            <div class="mt-2 text-xs text-gray-900 space-y-1">
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:105px;">ANTI - RABIES:</span>
+                                    <div style="flex:1;"><div class="radio-group">
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="antirabies" style="margin:0;"> PVRV</label>
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="antirabies" style="margin:0;"> PCEC</label>
+                                    </div></div>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:105px;">BRAND NAME:</span>
+                                    <div style="flex:1; border-bottom:1px solid #333; height:18px;"></div>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:105px;">ROUTE:</span>
+                                    <div style="flex:1;"><div class="radio-group">
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="route" style="margin:0;"> ID</label>
+                                        <label style="display:flex; align-items:center; gap:3px;"><input type="radio" name="route" style="margin:0;"> IM</label>
+                                    </div></div>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:105px;">TETANUS TOXOID:</span>
+                                    <div style="flex:1; border-bottom:1px solid #333; height:18px;"></div>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <span style="font-weight:600; min-width:105px;">RIG:</span>
+                                    <div style="flex:1; border-bottom:1px solid #333; height:18px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT PANEL - White background with tables -->
+                    <div class="md:w-1/2 px-6 py-6 flex flex-col bg-white" style="border-left: 1px solid #ddd;">
+                        <!-- Pre-exposure Prophylaxis -->
+                        <div class="mb-3">
+                            <div style="text-align:center;"><div class="pill-filled">PRE EXPOSURE PROPHYLAXIS</div></div>
+                            <div class="mt-2 text-xs">
+                                <table style="width:100%; border-collapse:collapse;">
+                                    <!-- header intentionally removed for Booster table to match requested layout -->
+                                    <tbody>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D0</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D7</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D28</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Post-exposure Prophylaxis -->
+                        <div class="mb-3">
+                            <div style="text-align:center;"><div class="pill-filled">POST EXPOSURE PROPHYLAXIS</div></div>
+                            <div class="mt-2 text-xs">
+                                <table style="width:100%; border-collapse:collapse;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; background:#fff;">DAY</th>
+                                            <th style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; background:#fff;">DATE</th>
+                                            <th style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; background:#fff;">DOSE</th>
+                                            <th style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; background:#fff;">SIGNATURE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D0</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D3</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D7</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D14</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D28</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Booster -->
+                        <div class="mb-3">
+                            <div style="text-align:center;"><div class="pill-filled">BOOSTER</div></div>
+                            <div class="mt-2 text-xs">
+                                <table style="width:100%; border-collapse:collapse;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; background:#fff;">DAY</th>
+                                            <th style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; background:#fff;">DATE</th>
+                                            <th style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; background:#fff;">DOSE</th>
+                                            <th style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; background:#fff;">SIGNATURE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D0</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                        <tr><td style="border:1px solid #333; padding:8px; text-align:center;">D3</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td><td style="border:1px solid #333; padding:8px;">&nbsp;</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="mt-2">
+                            <label class="text-xs font-bold block mb-1" style="color:#dc2626;">REMARKS:</label>
+                            <div style="border-bottom:1px solid #333; height:18px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flip arrow -->
+        <a href="{{ url_for('virtual_vaccine_card') }}" class="arrow">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+
+    </div>
+
+</script>
+    <script>
+        function toggleNav() { document.body.classList.toggle('sidebar-open'); }
+
+        function closeNav() { document.body.classList.remove('sidebar-open'); }
+
+        // Close sidebar when clicking outside of it on mobile
+        document.getElementById('main').addEventListener('click', function(event) {
+            if (document.body.classList.contains('sidebar-open') && 
+                !event.target.closest('.sidebar') && 
+                !event.target.closest('.menu-icon')) {
+                closeNav();
+            }
+        });
+        
+        // Prevent clicks inside sidebar from closing it
+        var sidebarEl = document.querySelector('.sidebar');
+        if (sidebarEl) {
+            sidebarEl.addEventListener('click', function(event) {
+                event.stopPropagation();
+                if (event.target.tagName === 'A' || event.target.closest('a')) {
+                    setTimeout(closeNav, 300);
+                }
+            });
+        }
+    </script>
+    
+</body>
+</html>

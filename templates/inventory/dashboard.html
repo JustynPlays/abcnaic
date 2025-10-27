@@ -1,0 +1,190 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Inventory Dashboard - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Inventory Dashboard</h1>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        {% for category in categories %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                {{ category.category }}
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ category.item_count }} items
+                            </div>
+                            {% if category.low_stock_count > 0 %}
+                            <div class="mt-2">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    {{ category.low_stock_count }} low stock
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-{{ 'pills' if 'vaccine' in category.category.lower() else 'box' }} fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Low Stock Alerts -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Low Stock Items
+                    </h6>
+                    <a href="{{ url_for('inventory.inventory_items') }}?low_stock=1" class="btn btn-sm btn-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_items %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th class="text-end">In Stock</th>
+                                    <th class="text-end">Min Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in low_stock_items %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('inventory.manage_inventory_item', item_id=item.id) }}">
+                                            {{ item.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.category_name }}</td>
+                                    <td class="text-end">{{ item.quantity }} {{ item.unit }}</td>
+                                    <td class="text-end">{{ item.min_quantity }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <p class="mb-0">No low stock items</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Transactions -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-exchange-alt"></i> Recent Transactions
+                    </h6>
+                    <a href="{{ url_for('inventory.inventory_transactions') }}" class="btn btn-sm btn-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Item</th>
+                                    <th class="text-end">Qty</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tx in recent_transactions %}
+                                <tr>
+                                    <td>{{ tx.created_at|datetimeformat('%Y-%m-%d') }}</td>
+                                    <td>{{ tx.item_name }}</td>
+                                    <td class="text-end">
+                                        {% if tx.transaction_type in ['in', 'returned'] %}
+                                            <span class="text-success">+{{ tx.quantity }} {{ tx.unit }}</span>
+                                        {% elif tx.transaction_type in ['out', 'expired'] %}
+                                            <span class="text-danger">-{{ tx.quantity }} {{ tx.unit }}</span>
+                                        {% else %}
+                                            {{ tx.quantity }} {{ tx.unit }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if tx.transaction_type in ['in', 'returned'] else 'danger' if tx.transaction_type in ['out', 'expired'] else 'info' }}">
+                                            {{ tx.transaction_type|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-info-circle fa-2x text-secondary mb-2"></i>
+                        <p class="mb-0">No recent transactions</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('inventory.manage_inventory_item') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add New Item
+                        </a>
+                        <a href="{{ url_for('inventory.record_inventory_transaction') }}" class="btn btn-success">
+                            <i class="fas fa-exchange-alt"></i> Record Transaction
+                        </a>
+                        <a href="{{ url_for('inventory.inventory_reports') }}" class="btn btn-info">
+                            <i class="fas fa-chart-bar"></i> View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add any custom JavaScript for the dashboard here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
+</script>
+{% endblock %}

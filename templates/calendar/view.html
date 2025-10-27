@@ -1,0 +1,41 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Appointment Calendar{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Appointment Calendar</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Calendar</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-calendar-alt me-1"></i>
+            Calendar View
+        </div>
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: '/api/appointments' // This endpoint will be created next
+        });
+        calendar.render();
+    });
+</script>
+{% endblock %}

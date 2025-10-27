@@ -1,0 +1,119 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Edit Customer - {{ user.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Edit Customer Profile</h1>
+        <a href="{{ url_for('admin_view_user', user_id=user.id) }}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left fa-sm"></i> Back to Profile
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold" style="color: #e84118;">Editing: {{ user.name }}</h6>
+        </div>
+        <div class="card-body">
+            <form method="post" id="editUserForm">
+                <!-- Name and Email -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="contact_number" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="contact_number" name="contact_number" value="{{ user.contact_number or '' }}" placeholder="Enter phone number">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="2" placeholder="Enter complete address">{{ user.address or '' }}</textarea>
+                    </div>
+                </div>
+                    <!-- DOB and Gender -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="date_of_birth" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ user.date_of_birth or '' }}" max="{{ max_dob }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="gender" class="form-label">Gender</label>
+                            <select class="form-select" id="gender" name="gender">
+                                <option value="" {% if not user.gender %}selected{% endif %}>Select Gender</option>
+                                <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
+                                <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                                <option value="other" {% if user.gender == 'other' %}selected{% endif %}>Prefer not to say</option>
+                            </select>
+                        </div>
+                    </div>
+
+                <!-- Password -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Leave blank to keep current">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        <div class="invalid-feedback">
+                            Passwords do not match.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification status removed: verification/pending concept deprecated -->
+
+                <hr>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('admin_view_user', user_id=user.id) }}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary" style="background-color: #e84118; border-color: #e84118;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editUserForm');
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+
+    if (editForm) {
+        editForm.addEventListener('submit', function(event) {
+            if (newPassword.value && newPassword.value !== confirmPassword.value) {
+                event.preventDefault();
+                confirmPassword.classList.add('is-invalid');
+            } else {
+                confirmPassword.classList.remove('is-invalid');
+            }
+        });
+    }
+    
+    if (confirmPassword) {
+        confirmPassword.addEventListener('input', function() {
+            if (newPassword.value !== confirmPassword.value) {
+                confirmPassword.classList.add('is-invalid');
+            } else {
+                confirmPassword.classList.remove('is-invalid');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
