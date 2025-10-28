@@ -166,7 +166,7 @@
                         </button>
                         
                         <!-- Send SMS Notification -->
-                        <button id="smsBtn" type="button" class="btn btn-outline-primary">
+                        <button id="smsBtn" type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#smsModal">
                             <i class="fas fa-sms me-2"></i>Send SMS
                         </button>
                     </div>
@@ -400,5 +400,55 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     } catch(e) { console.error('sms modal attach error', e); }
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    try {
+        var smsModalEl = document.getElementById('smsModal');
+        if (!smsModalEl) return;
+
+        // When the modal is hidden, ensure any leftover backdrop or body classes are cleaned up
+        smsModalEl.addEventListener('hidden.bs.modal', function(){
+            try {
+                document.querySelectorAll('.modal-backdrop').forEach(function(b){ b.remove(); });
+                document.body.classList.remove('modal-open');
+                // reset any body padding added by Bootstrap
+                document.body.style.paddingRight = '';
+            } catch (e) { console.error('cleanup hidden.bs.modal', e); }
+        });
+
+        // Fallback: some browsers or older script orders may not trigger bootstrap events reliably.
+        // Hook close buttons inside the modal to force a cleanup when clicked.
+        smsModalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                try {
+                    if (window.bootstrap && bootstrap.Modal && bootstrap.Modal.getInstance) {
+                        var inst = bootstrap.Modal.getInstance(smsModalEl);
+                        if (inst) inst.hide();
+                    } else {
+                        smsModalEl.classList.remove('show');
+                        smsModalEl.style.display = 'none';
+                        smsModalEl.setAttribute('aria-hidden', 'true');
+                        document.querySelectorAll('.modal-backdrop').forEach(function(b){ b.remove(); });
+                        document.body.classList.remove('modal-open');
+                        document.body.style.paddingRight = '';
+                    }
+                } catch(e) { console.error('close button cleanup', e); }
+            });
+        });
+
+        // When modal is shown, make sure duplicate backdrops don't accumulate
+        smsModalEl.addEventListener('shown.bs.modal', function(){
+            try {
+                var backdrops = document.querySelectorAll('.modal-backdrop');
+                if (backdrops.length > 1) {
+                    backdrops.forEach(function(b, i){ if (i>0) b.remove(); });
+                }
+            } catch(e) { console.error('shown.bs.modal cleanup', e); }
+        });
+    } catch(err) {
+        console.error('SMS modal robust cleanup init error', err);
+    }
+});
 </script>
 {% endblock %}

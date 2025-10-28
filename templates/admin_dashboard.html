@@ -140,6 +140,35 @@
                 </div>
             </div>
 
+            <!-- Weekly Overview + Pending Appointments -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-th-large me-2"></i>Weekly Overview</h5>
+                            <div>
+                                <span class="badge bg-warning text-dark me-1">Pending</span>
+                                <span class="badge bg-success me-1">Confirmed</span>
+                                <span class="badge bg-info me-1">Completed</span>
+                                <span class="badge bg-danger">Cancelled</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="weekly-overview" class="mb-3">
+                                <div class="weekly-grid d-flex gap-2" style="overflow-x:auto">
+                                    <!-- JS will populate 7 columns here -->
+                                </div>
+                            </div>
+                            <hr>
+                            <h6 class="mb-3"><i class="fas fa-hourglass-half me-2"></i>Pending Appointments</h6>
+                            <div id="pending-appointments" class="list-group">
+                                <!-- JS will populate pending appointments here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Recent Appointments -->
             <div class="row">
                 <div class="col-12">
@@ -162,7 +191,7 @@
                         <div class="card-body p-0">
                             <div class="list-group list-group-flush">
                                 {% for appointment in recent_appointments %}
-                                <div class="list-group-item">
+                                <div class="list-group-item app-compact">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="d-flex align-items-center">
@@ -193,7 +222,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="text-end">
+                                        <div class="d-flex flex-column align-items-end">
                                             <small class="text-muted">{{ appointment['appointment_time'] }}</small>
                                             <div class="mt-1">
                                                 <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment['id']) }}" class="btn btn-sm btn-outline-primary">
@@ -272,18 +301,9 @@
 {% block scripts %}
 {{ super() }}
 <script>
-// Chart data from database
-const chartData = {
-    service_labels: {{ (chart_data.get('service_labels', []))|tojson }},
-    service_values: {{ (chart_data.get('service_values', []))|tojson }},
-    appointment_status_labels: {{ (chart_data.get('appointment_status_labels', []))|tojson }},
-    appointment_status_values: {{ (chart_data.get('appointment_status_values', []))|tojson }},
-    weekly_appointment_labels: {{ (chart_data.get('weekly_appointment_labels', []))|tojson }},
-    weekly_appointment_values: {{ (chart_data.get('weekly_appointment_values', []))|tojson }}
-        ,
-        weekly_sales_labels: {{ (chart_data.get('weekly_sales_labels', []))|tojson }},
-        weekly_sales_values: {{ (chart_data.get('weekly_sales_values', []))|tojson }}
-};
+// Dashboard payload injected as a single JSON object for safety
+const dashboardPayload = {{ dashboard_payload|tojson }};
+const chartData = dashboardPayload.chart_data || {};
 </script>
 <script>
 function toggleSidebar() {
@@ -505,5 +525,95 @@ function initializeCharts() {
         console.error('Error initializing charts:', error);
     }
 }
+</script>
+<script>
+// Weekly overview renderer using recent_appointments JSON data
+document.addEventListener('DOMContentLoaded', function(){
+    try {
+    const weeklyAppointments = dashboardPayload.recent_appointments || [];
+
+        function formatDate(d){
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth()+1).padStart(2,'0');
+            const dd = String(d.getDate()).padStart(2,'0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // compute Monday of current week
+        const today = new Date();
+        const day = today.getDay(); // 0 Sun .. 6 Sat
+        const diffToMonday = (day + 6) % 7; // days since Monday
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - diffToMonday);
+
+        const grid = document.querySelector('#weekly-overview .weekly-grid');
+        if (!grid) return;
+
+        for (let i=0;i<7;i++){
+            const cellDate = new Date(monday);
+            cellDate.setDate(monday.getDate() + i);
+            const iso = formatDate(cellDate);
+            const dayName = cellDate.toLocaleDateString(undefined,{weekday:'short'});
+            const monthDay = cellDate.toLocaleDateString(undefined,{month:'short', day:'numeric'});
+
+            const col = document.createElement('div');
+            col.style.minWidth = '190px';
+            col.style.flex = '0 0 190px';
+            col.className = 'p-2 border rounded bg-light';
+
+            const header = document.createElement('div');
+            header.innerHTML = `<strong>${dayName}</strong><div class="text-muted small">${monthDay}</div>`;
+            col.appendChild(header);
+
+            const list = document.createElement('div');
+            list.className = 'mt-2';
+
+            const appts = weeklyAppointments.filter(a => (a.appointment_date || '').startsWith(iso));
+            if (appts.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'text-muted small mt-2';
+                empty.textContent = '—';
+                list.appendChild(empty);
+            } else {
+                appts.forEach(function(a){
+                    const item = document.createElement('div');
+                    item.className = 'card mb-2 p-2';
+                    item.style.borderLeft = '4px solid transparent';
+                    let badgeClass = 'bg-warning text-dark';
+                    if (a.status === 'confirmed') badgeClass = 'bg-success text-white';
+                    if (a.status === 'completed') badgeClass = 'bg-info text-white';
+                    if (a.status === 'cancelled') badgeClass = 'bg-danger text-white';
+                    item.innerHTML = `<div class="d-flex justify-content-between align-items-start"><div><div class="fw-semibold">${a.patient_name || a.user_name || 'Unknown'}</div><div class="small text-muted">${a.appointment_time || ''} • ${a.service || ''}</div></div><div><span class="badge ${badgeClass}">${(a.status||'').toUpperCase()}</span></div></div>`;
+                    list.appendChild(item);
+                });
+            }
+
+            col.appendChild(list);
+            grid.appendChild(col);
+        }
+
+        // Pending appointments list (use recent_appointments filtered for pending)
+        const pendingContainer = document.getElementById('pending-appointments');
+        if (pendingContainer){
+            const pendings = weeklyAppointments.filter(a => a.status === 'pending');
+            if (pendings.length === 0){
+                pendingContainer.innerHTML = '<div class="text-muted p-3">No pending appointments</div>';
+            } else {
+                pendingContainer.innerHTML = '';
+                pendings.forEach(function(p){
+                    const li = document.createElement('div');
+                    li.className = 'list-group-item app-compact';
+                    const left = document.createElement('div');
+                    left.innerHTML = `<div class="fw-semibold">${p.patient_name || p.user_name || 'Unknown'}</div><div class="small text-muted">${p.appointment_date} • ${p.appointment_time || ''} • ${p.service || ''}</div>`;
+                    const right = document.createElement('div');
+                    right.innerHTML = `<a class="btn btn-sm btn-outline-primary me-2" href="${p.id ? ('/appointments/view/' + p.id) : '#'}"><i class="fas fa-eye"></i> View</a>`;
+                    li.appendChild(left);
+                    li.appendChild(right);
+                    pendingContainer.appendChild(li);
+                });
+            }
+        }
+    } catch(err){ console.error('weekly overview render error', err); }
+});
 </script>
 {% endblock %}

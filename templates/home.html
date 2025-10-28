@@ -6,6 +6,7 @@
     <title>Home - Dr. Care Animal Bite Center Naic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/user_responsive.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -84,9 +85,29 @@
         body.sidebar-open .main-content {
             margin-left: 280px;
         }
+
+        /* Desktop: sidebar always open */
+        @media (min-width: 769px) {
+            .sidebar {
+                left: 0 !important; /* Always visible on desktop */
+            }
+            body .main-content {
+                margin-left: 280px; /* Always shifted on desktop */
+            }
+            .menu-icon {
+                display: none; /* Hide hamburger on desktop */
+            }
+        }
+
+        /* Mobile: sidebar slides in/out */
+        @media (max-width: 768px) {
+            body:not(.sidebar-open) .main-content {
+                margin-left: 0; /* No margin when closed on mobile */
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-100 sidebar-open">
+<body class="bg-gray-100">
     <!-- Sidebar -->
     {% include '_user_sidebar.html' %}
 
@@ -110,34 +131,35 @@
 
     <!-- Main Content -->
     <main class="main-bg min-h-screen flex items-center justify-center p-6" style="min-height: calc(100vh - 76px);">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-6xl mt-7">
+    <div class="home-card-grid grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-6xl mt-7">
             <!-- Card 1: Book An Appointment -->
-            <a href="{{ url_for('book_appointment') }}" class="bg-white p-10 rounded-xl shadow-xl border-2 border-red-300 flex items-center space-x-10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 transform hover:border-red-400">
-                <div class="p-4 rounded-lg">
+            {# Prefer Flask-Login's current_user, but fall back to session keys if needed #}
+            <a href="{% if (current_user is defined and current_user.is_authenticated) or (session.user_username is defined and session.user_username) or (session.user_email is defined and session.user_email) %}{{ url_for('book_appointment') }}{% else %}{{ url_for('login') }}{% endif %}" class="home-card bg-white p-10 rounded-xl shadow-xl border-2 border-red-300 flex items-center space-x-10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 transform hover:border-red-400">
+                <div class="icon-container p-4 rounded-lg">
                     <img src="/static/icons/booking 1.png" alt="Calendar Icon" class="w-24 h-24">
                 </div>
                 <span class="text-4xl font-bold text-gray-800">Book An Appointment</span>
             </a>
 
             <!-- Card 2: Bite Categories -->
-            <a href="{{ url_for('bite_categories') }}" class="bg-white p-10 rounded-xl shadow-xl border-2 border-red-300 flex items-center space-x-10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 transform hover:border-red-400">
-                <div class="p-4 rounded-lg">
+            <a href="{{ url_for('bite_categories') }}" class="home-card bg-white p-10 rounded-xl shadow-xl border-2 border-red-300 flex items-center space-x-10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 transform hover:border-red-400">
+                <div class="icon-container p-4 rounded-lg">
                     <img src="/static/icons/Group 43.png" alt="Categories Icon" class="w-24 h-24">
                 </div>
                 <span class="text-4xl font-bold text-gray-800">Bite Categories</span>
             </a>
 
             <!-- Card 3: Animal bite first aid -->
-            <a href="{{ url_for('animal_bite_first_aid') }}" class="bg-white p-10 rounded-xl shadow-xl border-2 border-red-300 flex items-center space-x-10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 transform hover:border-red-400">
-                <div class="p-4 rounded-lg">
+            <a href="{{ url_for('animal_bite_first_aid') }}" class="home-card bg-white p-10 rounded-xl shadow-xl border-2 border-red-300 flex items-center space-x-10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 transform hover:border-red-400">
+                <div class="icon-container p-4 rounded-lg">
                     <img src="/static/icons/reminder 1.png" alt="First Aid Icon" class="w-24 h-24">
                 </div>
                 <span class="text-4xl font-bold text-gray-800">Animal Bite First Aid</span>
             </a>
 
             <!-- Card 4: After-vaccine reminders -->
-            <a href="{{ url_for('after_care_reminder') }}" class="bg-white p-10 rounded-xl shadow-xl border-2 border-red-300 flex items-center space-x-10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 transform hover:border-red-400">
-                <div class="p-4 rounded-lg">
+            <a href="{{ url_for('after_care_reminder') }}" class="home-card bg-white p-10 rounded-xl shadow-xl border-2 border-red-300 flex items-center space-x-10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 transform hover:border-red-400">
+                <div class="icon-container p-4 rounded-lg">
                     <img src="/static/icons/reminder (1) 1.png" alt="Reminder Icon" class="w-24 h-24">
                 </div>
                 <span class="text-4xl font-bold text-gray-800">After-Vaccine Reminders</span>
@@ -149,22 +171,32 @@
 
     <script>
         function navigateTo(url) {
-            closeNav();
+            // Only close nav on mobile
+            if (window.innerWidth <= 768) {
+                closeNav();
+            }
             window.location.href = url;
             return false;
         }
         
         function toggleNav() {
-            document.body.classList.toggle('sidebar-open');
+            // Only toggle on mobile
+            if (window.innerWidth <= 768) {
+                document.body.classList.toggle('sidebar-open');
+            }
         }
 
         function closeNav() {
-            document.body.classList.remove('sidebar-open');
+            // Only close on mobile
+            if (window.innerWidth <= 768) {
+                document.body.classList.remove('sidebar-open');
+            }
         }
 
-        // Close sidebar when clicking outside of it on mobile
+        // Close sidebar when clicking outside of it (mobile only)
         document.getElementById('main').addEventListener('click', function(event) {
-            if (document.body.classList.contains('sidebar-open') && 
+            if (window.innerWidth <= 768 && 
+                document.body.classList.contains('sidebar-open') && 
                 !event.target.closest('.sidebar') && 
                 !event.target.closest('.menu-icon')) {
                 closeNav();
@@ -175,11 +207,31 @@
         document.querySelector('.sidebar').addEventListener('click', function(event) {
             event.stopPropagation();
             
-            // If a link was clicked, close the sidebar after a short delay
-            if (event.target.tagName === 'A' || event.target.closest('a')) {
+            // If a link was clicked on mobile, close the sidebar after a short delay
+            if (window.innerWidth <= 768 && (event.target.tagName === 'A' || event.target.closest('a'))) {
                 setTimeout(closeNav, 300);
             }
         });
+
+        // Handle window resize - keep sidebar open on desktop, allow close on mobile
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if (window.innerWidth > 768) {
+                    // Desktop: ensure sidebar is always visible
+                    document.body.classList.add('sidebar-open');
+                } else {
+                    // Mobile: allow it to be closed (don't force open)
+                    // Keep current state
+                }
+            }, 250);
+        });
+
+        // Initialize: open sidebar on desktop, closed on mobile
+        if (window.innerWidth > 768) {
+            document.body.classList.add('sidebar-open');
+        }
     </script>
 
 </body>

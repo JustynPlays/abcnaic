@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, url_for
 from functools import wraps
 from flask import session, redirect, url_for
 
@@ -27,19 +27,55 @@ def init_calendar_routes(app, get_db):
         conn = get_db()
         c = conn.cursor()
         c.execute("""
-            SELECT patient_name, service, appointment_date, appointment_time
+            SELECT id, patient_name, service, appointment_date, appointment_time, status
             FROM appointments
             WHERE status != 'cancelled'
         """)
-        appointments = c.fetchall()
+        rows = c.fetchall()
+        # ensure mapping access - convert sqlite rows to dicts if necessary
+        try:
+            appointments = [dict(r) for r in rows]
+        except Exception:
+            # fallback: assume rows are already dict-like
+            appointments = rows
         conn.close()
 
         events = []
         for appt in appointments:
-            start_datetime = f"{appt['appointment_date']}T{appt['appointment_time']}"
+            # Build ISO start; if time is missing, use all-day event
+            time = appt.get('appointment_time') or ''
+            date = appt.get('appointment_date')
+            if time and time.strip():
+                # ensure time is HH:MM or HH:MM:SS
+                start = f"{date}T{time}"
+                all_day = False
+            else:
+                start = date
+                all_day = True
+
+            # color mapping per status
+            status = (appt.get('status') or '').lower()
+            color_map = {
+                'pending': '#f39c12',
+                'confirmed': '#2ecc71',
+                'completed': '#3498db',
+                'cancelled': '#e74c3c'
+            }
+            color = color_map.get(status, '#6c757d')
+
             events.append({
-                'title': f"{appt['patient_name']} - {appt['service']}",
-                'start': start_datetime
+                'id': appt.get('id'),
+                'title': f"{appt.get('patient_name') or 'Appointment'} - {appt.get('service') or ''}",
+                'start': start,
+                'allDay': all_day,
+                'url': url_for('appointments.view_appointment', appointment_id=appt.get('id')) if appt.get('id') else None,
+                'color': color,
+                'extendedProps': {
+                    'status': status,
+                    'service': appt.get('service'),
+                    'patient_name': appt.get('patient_name'),
+                    'appointment_time': appt.get('appointment_time')
+                }
             })
         
         return jsonify(events)

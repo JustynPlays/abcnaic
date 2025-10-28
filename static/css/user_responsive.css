@@ -1,0 +1,1026 @@
+/* ==============================================
+   User Pages - Mobile Responsive Styles
+   ============================================== */
+
+/* Base mobile-first styles */
+@media (max-width: 768px) {
+    /* Home page cards - stack vertically on mobile */
+    .home-card-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+        padding: 1rem !important;
+    }
+
+    .home-card {
+        padding: 1.5rem !important;
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+
+    .home-card img {
+        width: 64px !important;
+        height: 64px !important;
+        margin: 0 auto 1rem !important;
+    }
+
+    .home-card span {
+        font-size: 1.5rem !important;
+        line-height: 1.3 !important;
+    }
+
+    /* Header adjustments */
+    header .container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    header .flex.items-center {
+        width: 100%;
+    }
+
+    header .text-xl {
+        font-size: 1rem !important;
+        line-height: 1.2 !important;
+    }
+
+    header img {
+        height: 2.5rem !important;
+    }
+
+    /* Sidebar mobile fixes */
+    .sidebar {
+        width: 280px;
+        max-width: 85vw;
+    }
+
+    body.sidebar-open .main-content {
+        margin-left: 0 !important;
+    }
+
+    /* Main content padding on mobile */
+    main {
+        padding: 1rem !important;
+        min-height: calc(100vh - 64px) !important;
+    }
+
+    /* Form sections on mobile */
+    .form-section {
+        max-width: 100% !important;
+        margin: 1rem !important;
+        padding: 1.5rem !important;
+    }
+
+    /* Button adjustments */
+    .btn, button {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Icon container fixes - ensure icons display */
+    .icon-container {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        min-width: 64px;
+        min-height: 64px;
+    }
+
+    /* Ensure images load and display */
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    /* Card layout for mobile */
+    .card-mobile {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 2px solid #fca5a5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    /* Text sizing for mobile */
+    h1 {
+        font-size: 1.75rem !important;
+        line-height: 1.3 !important;
+    }
+
+    h2 {
+        font-size: 1.5rem !important;
+        line-height: 1.3 !important;
+    }
+
+    h3 {
+        font-size: 1.25rem !important;
+        line-height: 1.3 !important;
+    }
+
+    p {
+        font-size: 0.95rem !important;
+        line-height: 1.5 !important;
+    }
+
+    /* Prevent horizontal overflow */
+    body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    .container, .main-content {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+}
+
+/* Tablet adjustments (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .home-card-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 2rem !important;
+    }
+
+    .home-card {
+        padding: 2rem !important;
+    }
+
+    .home-card span {
+        font-size: 2rem !important;
+    }
+}
+
+/* Small mobile devices (< 480px) */
+@media (max-width: 480px) {
+    .home-card {
+        padding: 1rem !important;
+    }
+
+    .home-card span {
+        font-size: 1.25rem !important;
+    }
+
+    .home-card img {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    header .text-xl {
+        font-size: 0.85rem !important;
+    }
+
+    .menu-icon {
+        font-size: 20px !important;
+    }
+}
+
+/* Universal mobile menu fixes */
+@media (max-width: 768px) {
+    /* Overlay element for sidebar - use an actual DOM node so clicks are reliable */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        pointer-events: auto;
+    }
+
+    /* Ensure the menu/hamburger icon stays clickable above the overlay */
+    .menu-icon {
+        position: relative;
+        z-index: 1101;
+    }
+
+    .sidebar {
+        z-index: 1000;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+    }
+
+    /* Fix sidebar scroll on mobile */
+    .sidebar {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Force the site title into the left side of the header on user pages
+   by positioning it near the menu icon. This applies only to user pages' headers. */
+header .container {
+    position: relative;
+}
+
+header nav .container .text-xl.font-semibold {
+    position: absolute !important;
+    left: 72px !important; /* space for hamburger + logo */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    white-space: nowrap;
+}
+
+/* Ensure the logo inside the branding link doesn't push the title off-center */
+header nav .container a.flex.items-center {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* If a page has a right-side control group, keep it visible by allowing it to float right */
+header nav .container > .flex.items-center + .flex.items-center {
+    margin-left: auto !important;
+}
+
+/* Ensure the branding anchor doesn't push the title out on small screens */
+header nav a.flex.items-center {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+/* Fallback target: ensure the branding span sits to the right of the logo
+   instead of absolutely positioned (prevents overlap). */
+header nav a.flex.items-center > span {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    display: inline-block !important;
+    margin-left: 8px !important; /* small gap after the logo */
+    white-space: nowrap;
+}
+
+/* Make sure logo inside branding has safe spacing */
+header nav a.flex.items-center img {
+    margin-right: 8px !important;
+    display: inline-block !important;
+}
+
+/* Mobile slide-in/out animation for user sidebar only (use left for compatibility
+   with the existing inline `_user_sidebar.html` rules that set `left`) */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: calc(-1 * var(--sidebar-width));
+        height: 100vh;
+        z-index: 1000;
+        transition: left 250ms ease-in-out;
+        min-width: 260px;
+        max-width: 85vw;
+        background: linear-gradient(180deg, var(--primary-color), #1a252f);
+    }
+
+    .sidebar.show {
+        left: 0 !important;
+    }
+
+    /* Prevent body scroll while sidebar is open on mobile */
+    body.sidebar-open {
+        overflow: hidden;
+    }
+}
+
+/* On small screens, render the site title before the logo so it appears left
+   of the logo and next to the hamburger, without overlapping the icon. */
+@media (max-width: 768px) {
+    header nav a.flex.items-center {
+        /* ensure it's a flex container we can reorder */
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    /* Place the title before the logo in the flow */
+    header nav a.flex.items-center > span {
+        order: 1 !important;
+        margin-left: 4px !important; /* slightly reduced gap */
+        margin-right: 6px !important;
+        font-size: 1rem !important;
+    }
+
+    header nav a.flex.items-center img {
+        order: 2 !important;
+        margin-left: 2px !important; /* nudge logo left toward hamburger */
+        margin-right: 6px !important;
+        height: 36px !important;
+    }
+
+    /* Slightly increase space between menu icon and branding */
+    .menu-icon {
+        margin-right: 6px !important; /* reduce gap so logo sits closer */
+    }
+}
+
+/* Appointment booking page mobile - comprehensive responsive fixes */
+@media (max-width: 768px) {
+    /* ULTRA-COMPACT: Reduce container and all spacing even further */
+    .container {
+        padding: 0.5rem !important;
+    }
+
+    /* Compact header for booking pages */
+    .container header {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .container header h1 {
+        font-size: 1.25rem !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Back button sizing */
+    .container header a {
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Convert sidebar steps into horizontal compact strip on mobile */
+    aside.w-full {
+        width: 100% !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    aside .bg-white {
+        padding: 0.5rem !important;
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        gap: 0.4rem !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Exception: on the Animal Bite First Aid page, keep the tabs vertical on mobile */
+    .animal-tabs .tabs-container {
+        display: block !important;
+        overflow: visible !important;
+        padding: 0.5rem !important;
+    }
+
+    .animal-tabs .tabs-container > * {
+        display: block !important;
+        width: 100% !important;
+        margin-top: 0.5rem !important;
+    }
+
+    /* Compact sidebar step items into horizontal pills */
+    aside .sidebar-link,
+    aside .flex.items-center {
+        flex: 0 0 auto !important;
+        padding: 0.4rem 0.6rem !important;
+        margin: 0 !important;
+        border-right: none !important;
+        border-radius: 0.75rem !important;
+        font-size: 0.75rem !important;
+        white-space: nowrap !important;
+    }
+
+    aside .sidebar-link.active {
+        background-color: #FEF2F2 !important;
+        color: #A52A2A !important;
+        border: 2px solid #A52A2A !important;
+    }
+
+    aside .sidebar-link i,
+    aside .flex.items-center i {
+        margin-right: 0.2rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Main content area - reduce padding significantly */
+    main.w-full {
+        width: 100% !important;
+    }
+
+    main .bg-white {
+        padding: 0.75rem !important;
+    }
+
+    main h2 {
+        font-size: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    main h3 {
+        font-size: 0.95rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    main h4 {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.4rem !important;
+    }
+
+    main p {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* Form spacing optimization - ultra-compact */
+    form .space-y-4 > * + * {
+        margin-top: 0.6rem !important;
+    }
+
+    form label {
+        padding: 0.6rem !important;
+    }
+
+    form label .w-12 {
+        width: 2rem !important;
+        height: 2rem !important;
+        font-size: 1.1rem !important;
+    }
+
+    form label .font-semibold {
+        font-size: 0.9rem !important;
+    }
+
+    form label .text-sm {
+        font-size: 0.75rem !important;
+        line-height: 1.3 !important;
+    }
+
+    /* Button optimization */
+    form .mt-6 {
+        margin-top: 0.75rem !important;
+    }
+
+    form button {
+        padding: 0.6rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Services & Fees page: Reorder columns on mobile */
+    /* Left column (services) should appear AFTER right column (body diagram) */
+    form .grid.grid-cols-1.lg\\:grid-cols-2 {
+        display: flex !important;
+        flex-direction: column-reverse !important; /* Reverse order: body diagram first, services second */
+    }
+
+    /* Make both columns full width on mobile */
+    form .grid.grid-cols-1.lg\\:grid-cols-2 > div {
+        width: 100% !important;
+    }
+
+    /* Body diagram responsiveness - make it fit mobile screens */
+    .body-diagram-container {
+        width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    .body-diagram-wrapper {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: center !important;
+    }
+
+    .body-diagram {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Make SVG body diagram responsive */
+    .body-diagram svg {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 320px !important;
+    }
+
+    /* Compact selected parts list */
+    .body-diagram + div {
+        padding: 0.5rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Services grid - reduce gaps and padding */
+    .grid.grid-cols-1.md\\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.6rem !important;
+    }
+
+    /* Service cards - ultra-compact */
+    .grid.grid-cols-1.md\\:grid-cols-2 label {
+        padding: 0.6rem !important;
+        gap: 0.6rem !important;
+    }
+
+    .grid.grid-cols-1.md\\:grid-cols-2 label i {
+        font-size: 1.25rem !important;
+    }
+
+    .grid.grid-cols-1.md\\:grid-cols-2 label .font-semibold {
+        font-size: 0.85rem !important;
+    }
+
+    .grid.grid-cols-1.md\\:grid-cols-2 label .text-sm {
+        font-size: 0.75rem !important;
+    }
+
+    /* Reduce service section spacing */
+    .mb-6 {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 0.4rem !important;
+    }
+
+    /* Exposure type radio buttons - more compact */
+    .flex.items-center.gap-6 {
+        gap: 1rem !important;
+    }
+
+    /* Legacy styles maintained for compatibility */
+    .appointment-step {
+        padding: 0.75rem !important;
+    }
+
+    .service-card {
+        flex-direction: column !important;
+        text-align: center !important;
+        padding: 0.6rem !important;
+    }
+
+    /* Make selected/mandatory service cards match unselected layout on mobile
+       (avoid large centered icon/cards). Render them as horizontal items with
+       checkbox/icon on the left and content on the right). */
+    .service-card {
+        flex-direction: row !important;
+        align-items: center !important;
+        text-align: left !important;
+        padding: 0.5rem !important;
+        gap: 0.75rem !important;
+    }
+
+    .service-card i.fas {
+        font-size: 1.25rem !important; /* smaller icon */
+        margin-right: 0.5rem !important;
+    }
+
+    /* Shrink vaccine icons (override fa-2x) for both selected and unselected labels.
+       Targets the syringe icon that follows the service input so we don't change other icons.
+       Use !important to override font-awesome sizing classes. */
+    label > input[name="service"] + i.fas.fa-syringe,
+    label > i.fas.fa-syringe {
+        font-size: 1.25rem !important;
+        line-height: 1 !important;
+    }
+
+    .service-card .font-semibold {
+        font-size: 0.95rem !important;
+    }
+
+    /* Ensure checked mark/indicator doesn't push layout taller */
+    .service-card .checked-mark {
+        position: relative !important;
+        top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .time-slot {
+        min-width: 80px !important;
+        padding: 0.6rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    .date-picker {
+        width: 100% !important;
+    }
+
+    /* Optimize flex layouts on booking pages */
+    .flex.flex-col.md\:flex-row,
+    .flex.flex-col.lg\:flex-row {
+        /* On mobile, stack columns naturally: services first, body diagram second.
+           REMOVED column-reverse so services appear BELOW body diagram. */
+        flex-direction: column !important;
+    }
+
+    /* On narrow screens, make the services container a column flex so we can
+       reorder the vaccination section to the very bottom without touching server code. */
+    .services-offered-container {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Push vaccination section to the bottom on mobile so it appears last in Services & Fees */
+    .vaccination-section {
+        order: 999 !important;
+    }
+
+    .flex.gap-8 {
+        gap: 0.75rem !important;
+    }
+
+    /* Compact borders and radius */
+    .border {
+        border-width: 1px !important;
+    }
+
+    .rounded-lg {
+        border-radius: 0.5rem !important;
+    }
+
+    .rounded-xl {
+        border-radius: 0.75rem !important;
+    }
+}
+
+/* FAQ page mobile */
+@media (max-width: 768px) {
+    .faq-item {
+        padding: 1rem !important;
+    }
+
+    .faq-question {
+        font-size: 1rem !important;
+    }
+
+    .faq-answer {
+        font-size: 0.9rem !important;
+    }
+}
+
+/* Profile/Account pages mobile */
+@media (max-width: 768px) {
+    .profile-section {
+        padding: 1rem !important;
+    }
+
+    .profile-card {
+        margin: 1rem !important;
+        padding: 1.5rem !important;
+    }
+
+    .profile-field {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .profile-label {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .profile-value {
+        width: 100% !important;
+    }
+}
+
+/* Booking summary/details mobile */
+@media (max-width: 768px) {
+    .booking-card {
+        margin: 1rem !important;
+        padding: 1rem !important;
+    }
+
+    .booking-details {
+        flex-direction: column !important;
+    }
+
+    .booking-field {
+        margin-bottom: 1rem !important;
+    }
+
+    .booking-actions {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    .booking-actions button {
+        width: 100% !important;
+    }
+}
+
+/* Fix for Tailwind utility overrides on mobile */
+@media (max-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    }
+
+    .md\:flex-row {
+        flex-direction: column !important;
+    }
+
+    .md\:text-4xl {
+        font-size: 1.5rem !important;
+        line-height: 1.3 !important;
+    }
+
+    .md\:p-10 {
+        padding: 1.5rem !important;
+    }
+
+    .md\:space-x-10 > * + * {
+        margin-left: 0 !important;
+    }
+}
+
+/* Ensure proper centering and alignment */
+@media (max-width: 768px) {
+    .flex.items-center {
+        align-items: center !important;
+    }
+
+    .flex.justify-center {
+        justify-content: center !important;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+
+    /* Center images and icons */
+    .icon-container, .img-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+}
+
+/* Home cards (icon + text) - make centered, compact and prevent wrapping on mobile */
+@media (max-width: 768px) {
+    .home-card {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 0.75rem 1rem !important;
+        gap: 0.6rem !important;
+        min-height: 88px !important; /* keep comfortable touch target */
+    }
+
+    .home-card img {
+        margin: 0 auto !important;
+        width: 56px !important;
+        height: 56px !important;
+        object-fit: contain !important;
+    }
+
+    .home-card span, .home-card .btn-text {
+        display: block !important;
+        margin: 0 !important;
+        font-size: 1rem !important;
+        line-height: 1.15 !important;
+        white-space: nowrap !important; /* prefer single line */
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+    }
+
+    /* If Tailwind utility class used for big text, reduce on mobile */
+    .home-card .text-4xl {
+        font-size: 1rem !important;
+    }
+
+    /* Ensure generic buttons don't wrap */
+    .btn, button {
+        white-space: nowrap !important;
+    }
+}
+
+/* Login / Register / Forgot password responsive headers */
+@media (max-width: 768px) {
+    /* Reduce title sizes and center them inside auth cards */
+    .login-card .login-title,
+    .register-card .register-title,
+    .forgot-card .forgot-title,
+    .forgot-title,
+    .login-title,
+    .register-title {
+        font-size: 1.1rem !important; /* smaller for mobile */
+        line-height: 1.3 !important;
+        text-align: center !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-bottom: 0.75rem !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    /* Reduce auth card padding for compactness */
+    .login-card,
+    .register-card,
+    .forgot-card {
+        padding: 1rem !important;
+    }
+
+    /* Ensure logo above title is slightly smaller */
+    .login-card img,
+    .register-card img,
+    .forgot-card img {
+        max-width: 60px !important;
+        margin-bottom: 0.5rem !important;
+    }
+}
+
+/* Extra small mobile devices - even more compact */
+@media (max-width: 480px) {
+    .login-card .login-title,
+    .register-card .register-title,
+    .forgot-card .forgot-title,
+    .forgot-title,
+    .login-title,
+    .register-title {
+        font-size: 1rem !important;
+        line-height: 1.3 !important;
+        padding: 0 0.25rem !important;
+    }
+    
+    .login-card,
+    .register-card,
+    .forgot-card {
+        padding: 0.75rem !important;
+        margin: 0.5rem !important;
+    }
+    
+    .login-card img,
+    .register-card img,
+    .forgot-card img {
+        max-width: 50px !important;
+    }
+}
+
+/* Auth pages - Navbar header responsive */
+@media (max-width: 768px) {
+    /* Make the navbar brand chip text smaller on mobile */
+    .navbar .brand-chip {
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.4rem !important;
+        white-space: nowrap !important;
+        max-width: calc(100vw - 100px) !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .navbar .brand-chip span {
+        font-size: 0.65rem !important;
+        display: block !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Reduce logo size in navbar */
+    .navbar-brand {
+        display: flex !important;
+        align-items: center !important;
+        max-width: 100% !important;
+    }
+    
+    .navbar-brand img {
+        height: 32px !important;
+        margin-right: 6px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .navbar {
+        padding: 0.5rem 0 !important;
+    }
+    
+    .navbar .container {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Even smaller on very small screens */
+    .navbar .brand-chip {
+        font-size: 0.6rem !important;
+        padding: 0.15rem 0.35rem !important;
+        max-width: calc(100vw - 80px) !important;
+    }
+    
+    .navbar .brand-chip span {
+        font-size: 0.6rem !important;
+    }
+    
+    .navbar-brand img {
+        height: 28px !important;
+        margin-right: 5px !important;
+    }
+}
+
+@media (max-width: 375px) {
+    /* Extra small devices (iPhone SE, etc) */
+    .navbar .brand-chip {
+        font-size: 0.55rem !important;
+        padding: 0.15rem 0.3rem !important;
+        max-width: calc(100vw - 70px) !important;
+    }
+    
+    .navbar .brand-chip span {
+        font-size: 0.55rem !important;
+    }
+    
+    .navbar-brand img {
+        height: 24px !important;
+        margin-right: 4px !important;
+    }
+}
+
+/* Landing page - center background image on mobile */
+@media (max-width: 768px) {
+    .main-bg {
+        background-position: center center !important;
+        background-size: cover !important;
+    }
+}
+
+/* FAQ page mobile fixes */
+@media (max-width: 768px) {
+    /* Fix scrolling issue on FAQ page */
+    body.bg-gray-50 {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Make FAQ header text responsive */
+    header nav span {
+        font-size: 0.75rem !important;
+        white-space: normal !important;
+        line-height: 1.2 !important;
+    }
+    
+    /* Reduce quick questions section height */
+    #faq-presets-list {
+        max-height: 120px !important;
+    }
+    
+    /* Make chat window more compact */
+    #faq-chat-window {
+        height: 360px !important;
+    }
+    
+    #faq-chat-messages {
+        max-height: 180px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Even more compact on small screens */
+    #faq-presets-list {
+        max-height: 100px !important;
+    }
+    
+    #faq-chat-window {
+        height: 320px !important;
+    }
+    
+    #faq-chat-messages {
+        max-height: 140px !important;
+    }
+    
+    header nav span {
+        font-size: 0.7rem !important;
+    }
+}
+
+/* Center the site title on mobile screens. This overrides earlier left/absolute
+   placements and ensures the title is centered while leaving room for the
+   hamburger and logo. The max-width prevents overlap on narrow devices. */
+@media (max-width: 768px) {
+    header nav .container .text-xl.font-semibold,
+    header nav a.flex.items-center > span,
+    header .site-title {
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        white-space: nowrap !important;
+        text-align: center !important;
+        max-width: calc(100% - 120px) !important; /* leave room for menu and logo */
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* Ensure hamburger and logo remain above the centered title and remain tappable */
+    .menu-icon {
+        position: relative !important;
+        z-index: 1102 !important;
+    }
+
+    header nav a.flex.items-center img {
+        position: relative !important;
+        z-index: 1101 !important;
+    }
+}
+
+/* Print styles (optional) */
+@media print {
+    .sidebar, .menu-icon, header nav {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+}

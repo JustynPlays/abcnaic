@@ -5,6 +5,8 @@
     @media (min-width: 769px) {
         .sidebar { left: 0 !important; position: fixed; top: 0; height: 100vh; z-index:1400; }
         .main-content { margin-left: var(--sidebar-width) !important; }
+        /* Hide hamburger/menu icons on desktop - they should only appear on mobile */
+        .menu-icon { display: none !important; }
     }
     /* Small screens: allow overlay behavior */
     @media (max-width: 768px) {
@@ -65,10 +67,14 @@
 <div id="mySidebar" class="sidebar">
     <div class="profile-section">
         <div class="profile-initial">
-            {% set display_name = session.user_name if session.user_name is defined and session.user_name else (current_user.name if current_user is defined and current_user.name else 'User') %}
-            {{ display_name.split(' ')[0][0] | default('U') | upper }}
+            {# Prefer username, then session.user_name, then current_user.name, else 'User' #}
+            {% set display_name = (current_user.username if (current_user is defined and current_user.username) 
+                                  else (session.user_username if (session.user_username is defined and session.user_username) 
+                                  else (session.user_name if (session.user_name is defined and session.user_name) 
+                                  else (current_user.name if (current_user is defined and current_user.name) else 'User')))) %}
+            {{ (display_name.split(' ')[0][0] if display_name) | default('U') | upper }}
         </div>
-        <h3 class="font-semibold text-xl mt-2">{{ session.user_name | default(current_user.name if current_user is defined else 'User') }}</h3>
+        <h3 class="font-semibold text-xl mt-2">{{ display_name }}</h3>
         <p class="text-sm text-gray-500">{{ session.user_email | default(current_user.email if current_user is defined else 'user@example.com') }}</p>
     </div>
     <a href="{{ url_for('edit_profile') }}"><i class="fas fa-user-edit fa-icon"></i> Edit Profile</a>

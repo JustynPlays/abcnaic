@@ -554,21 +554,49 @@
     <script>
         // Sidebar toggle for responsive behavior
         function toggleNav() {
-            document.body.classList.toggle('sidebar-open');
+            var body = document.body;
             var sidebar = document.querySelector('.sidebar');
-            if (sidebar) sidebar.classList.toggle('show');
+            if (!sidebar) return;
+
+            var opening = !sidebar.classList.contains('show');
+
+            // Toggle classes
+            sidebar.classList.toggle('show');
+            body.classList.toggle('sidebar-open');
+
+            // Manage a real overlay element so taps outside reliably close the sidebar
+            var overlay = document.getElementById('sidebar-overlay');
+            if (opening) {
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'sidebar-overlay';
+                    overlay.className = 'sidebar-overlay';
+                    overlay.addEventListener('click', function () {
+                        closeNav();
+                    });
+                    document.body.appendChild(overlay);
+                }
+            } else {
+                if (overlay) {
+                    overlay.remove();
+                }
+            }
         }
 
         function closeNav() {
-            document.body.classList.remove('sidebar-open');
+            var body = document.body;
             var sidebar = document.querySelector('.sidebar');
             if (sidebar) sidebar.classList.remove('show');
+            body.classList.remove('sidebar-open');
+            var overlay = document.getElementById('sidebar-overlay');
+            if (overlay) overlay.remove();
         }
 
-        // Close sidebar when clicking outside of it on mobile
+        // Fallback: close sidebar when clicking outside of it (keeps backward compatibility)
         document.addEventListener('click', function(event) {
             var sidebar = document.querySelector('.sidebar');
             if (!sidebar) return;
+            // if sidebar is open and the click target is outside both the sidebar and the menu icon
             if (sidebar.classList.contains('show') && !event.target.closest('.sidebar') && !event.target.closest('.menu-icon')) {
                 closeNav();
             }

@@ -31,22 +31,25 @@
             </div>
 
             <ul class="list-unstyled components">
-                <li class="{% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                    <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
-                </li>
-                                <li class="{% if request.endpoint == 'calendar_bp.view_calendar' %}active{% endif %}">
-                    <a href="{{ url_for('calendar_bp.view_calendar') }}"><i class="fas fa-calendar-alt"></i> Calendar</a>
-                </li>
-                                <li class="{% if request.endpoint.startswith('appointments.') %}active{% endif %}">
-                    <a href="{{ url_for('appointments.list_appointments') }}"><i class="fas fa-calendar-check"></i> Appointments</a>
-                </li>
+                    {# normalize endpoint/path for more resilient active link matching #}
+                    {% set ep = request.endpoint or '' %}
+                    {% set p = request.path or '' %}
+                    <li class="{% if ep == 'admin_dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+                    </li>
+                                    <li class="{% if ep == 'calendar_bp.view_calendar' or 'calendar' in ep or p.startswith(url_for('calendar_bp.view_calendar')) %}active{% endif %}">
+                        <a href="{{ url_for('calendar_bp.view_calendar') }}"><i class="fas fa-calendar-alt"></i> Calendar</a>
+                    </li>
+                                    <li class="{% if ep.startswith('appointments') or 'appointments' in p %}active{% endif %}">
+                        <a href="{{ url_for('appointments.list_appointments') }}"><i class="fas fa-calendar-check"></i> Appointments</a>
+                    </li>
                 {# Customers menu: show Archived Users as a nested item only when inside the customers module #}
-                {% set in_customers = request.endpoint in ['admin_users', 'admin_view_user', 'admin_archived_users'] %}
+                {% set in_customers = ep in ['admin_users', 'admin_view_user', 'admin_archived_users'] or 'user' in ep or 'users' in p %}
                 <li class="{% if in_customers %}active{% endif %}">
                     <a href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Customers</a>
                     {% if in_customers %}
                     <ul class="list-unstyled ms-3 mt-2">
-                        <li class="{% if request.endpoint == 'admin_archived_users' %}active{% endif %}">
+                        <li class="{% if ep == 'admin_archived_users' or p.endswith('/archived') %}active{% endif %}">
                             <a href="{{ url_for('admin_archived_users') }}"><i class="fas fa-archive"></i> Archived Users</a>
                         </li>
                     </ul>
@@ -61,7 +64,8 @@
                 <li class="{% if request.endpoint.startswith('inventory.') %}active{% endif %}">
                     <a href="{{ url_for('inventory.inventory_dashboard') }}"><i class="fas fa-boxes"></i> Inventory</a>
                 </li>
-                <li class="{% if request.endpoint in ['admin_faq_list','admin_faq_add','admin_faq_edit','admin_faq_delete','admin_faq_toggle'] %}active{% endif %}">
+                {# Content (FAQ) - treat any faq-related endpoint or path as active #}
+                <li class="{% if 'faq' in ep or 'faq' in p or ep in ['admin_faq_list','admin_faq_add','admin_faq_edit','admin_faq_delete','admin_faq_toggle'] %}active{% endif %}">
                     <a href="{{ url_for('admin_faq_list') }}"><i class="fas fa-file-alt"></i> Content</a>
                 </li>
                 <li>
@@ -103,8 +107,45 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
     <script>
         $(document).ready(function () {
+            function isMobile() {
+                return window.innerWidth <= 768;
+            }
+
+            // Keep original toggle behavior (desktop and mobile) but add mobile-only
+            // auto-close handlers so the sidebar can be closed on small screens.
             $('#sidebarCollapse').on('click', function () {
+                // Always toggle the 'active' class for admin sidebar; this keeps
+                // the desktop collapse behavior unchanged while allowing mobile
+                // close handlers to remove 'active' as needed.
                 $('#sidebar').toggleClass('active');
+            });
+
+            // When a link inside the sidebar is clicked on mobile, close the sidebar.
+            $('#sidebar a').on('click', function () {
+                if (isMobile() && $('#sidebar').hasClass('active')) {
+                    $('#sidebar').removeClass('active');
+                }
+            });
+
+            // Click/touch outside the sidebar should close it on mobile.
+            $(document).on('click touchstart', function (e) {
+                if (!isMobile()) return;
+                var $target = $(e.target);
+                if ($('#sidebar').hasClass('active')) {
+                    if (!$target.closest('#sidebar').length && !$target.closest('#sidebarCollapse').length) {
+                        $('#sidebar').removeClass('active');
+                    }
+                }
+            });
+
+            // Allow Esc key to close the sidebar on mobile.
+            $(document).on('keydown', function (e) {
+                var key = e.key || e.keyCode;
+                if ((key === 'Escape' || key === 'Esc' || key === 27) && isMobile()) {
+                    if ($('#sidebar').hasClass('active')) {
+                        $('#sidebar').removeClass('active');
+                    }
+                }
             });
 
             // Auto-dismiss alerts after 5 seconds

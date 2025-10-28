@@ -232,6 +232,58 @@
             .register-card {
                 padding: 1.5rem;
             }
+
+            /* Mobile responsive navbar */
+            .brand-chip {
+                font-size: 0.8rem !important;
+                padding: 0.25rem 0.5rem !important;
+                max-width: calc(100vw - 100px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .navbar-brand {
+                display: flex;
+                align-items: center;
+                max-width: calc(100vw - 40px);
+            }
+            
+            .navbar-brand img {
+                height: 36px !important;
+                margin-right: 8px !important;
+            }
+            
+            .navbar .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .brand-chip {
+                font-size: 0.75rem !important;
+                padding: 0.2rem 0.45rem !important;
+                max-width: calc(100vw - 80px);
+            }
+            
+            .navbar-brand img {
+                height: 32px !important;
+                margin-right: 6px !important;
+            }
+        }
+
+        @media (max-width: 375px) {
+            .brand-chip {
+                font-size: 0.7rem !important;
+                padding: 0.2rem 0.4rem !important;
+                max-width: calc(100vw - 70px);
+            }
+            
+            .navbar-brand img {
+                height: 24px !important;
+                margin-right: 4px !important;
+            }
         }
     </style>
 </head>

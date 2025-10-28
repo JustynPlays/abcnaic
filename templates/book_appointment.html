@@ -6,6 +6,7 @@
     <title>Book an Appointment - Dr. Care Animal Bite Center Naic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/user_responsive.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -89,6 +90,8 @@
                     <input type="hidden" id="appointment_type_input" name="appointment_type" value="{{ session.appointment_details.appointment_type if session.appointment_details and session.appointment_details.appointment_type else '' }}">
                     <!-- Server applied services (comma-separated) for client-side UI behaviors -->
                     <input type="hidden" id="server_applied_services" value="{{ session.appointment_details.service if session.appointment_details and session.appointment_details.service else '' }}">
+                    {# Prepare a normalized list of services from the session so we can pre-check inputs when user navigates back #}
+                    {% set server_services = session.appointment_details.service.split(',')|map('trim')|map('lower')|list if session.appointment_details and session.appointment_details.service else [] %}
                     <!-- Two Column Layout for Form Content -->
                     <div class="flex flex-col lg:flex-row gap-8">
                         <!-- Left Column - Form Fields -->
@@ -101,9 +104,7 @@
                                 <ul class="mt-2 list-disc list-inside text-sm text-gray-800">
                                     {% for s in session.appointment_details.service.split(',') %}
                                         {%- set sname = s.strip() -%}
-                                        {%- if 'tetanus' not in sname.lower() -%}
-                                            <li class="applied-vaccine-item">{{ sname }}</li>
-                                        {%- endif -%}
+                                        <li class="applied-vaccine-item">{{ sname }}</li>
                                     {% endfor %}
                                 </ul>
                                 <p class="mt-2 text-xs text-gray-500">You can review these on the summary page.</p>
@@ -118,10 +119,10 @@
                             <div class="mb-6">
                                 <h3 class="font-semibold text-lg mb-2">Type of Animal</h3>
                                 <div class="flex items-center gap-6">
-                                    <label class="flex items-center"><input type="radio" name="animal_type" value="dog" class="form-radio text-red-600" required> <span class="ml-2">DOG</span></label>
-                                    <label class="flex items-center"><input type="radio" name="animal_type" value="cat" class="form-radio text-red-600" required> <span class="ml-2">CAT</span></label>
+                                    <label class="flex items-center"><input type="radio" name="animal_type" value="dog" class="form-radio text-red-600" required {% if session.appointment_details and session.appointment_details.animal_type=='dog' %}checked{% endif %}> <span class="ml-2">DOG</span></label>
+                                    <label class="flex items-center"><input type="radio" name="animal_type" value="cat" class="form-radio text-red-600" required {% if session.appointment_details and session.appointment_details.animal_type=='cat' %}checked{% endif %}> <span class="ml-2">CAT</span></label>
                                     <label class="flex items-center">
-                                        <input type="radio" name="animal_type" value="etc" class="form-radio text-red-600 animal-etc-radio" required>
+                                        <input type="radio" name="animal_type" value="etc" class="form-radio text-red-600 animal-etc-radio" required {% if session.appointment_details and session.appointment_details.animal_type=='etc' %}checked{% endif %}>
                                         <span class="ml-2">ETC</span>
                                     </label>
                                 </div>
@@ -136,27 +137,27 @@
                             <div class="mb-6">
                                 <h3 class="font-semibold text-lg mb-2">Type of Exposure</h3>
                                 <div class="flex items-center gap-6">
-                                        <label class="flex items-center"><input type="radio" name="exposure_type" value="bite" class="form-radio text-red-600"> <span class="ml-2">BITE</span></label>
-                                        <label class="flex items-center"><input type="radio" name="exposure_type" value="scratch" class="form-radio text-red-600"> <span class="ml-2">SCRATCH</span></label>
+                                        <label class="flex items-center"><input type="radio" name="exposure_type" value="bite" class="form-radio text-red-600" {% if session.appointment_details and session.appointment_details.exposure_type=='bite' %}checked{% endif %}> <span class="ml-2">BITE</span></label>
+                                        <label class="flex items-center"><input type="radio" name="exposure_type" value="scratch" class="form-radio text-red-600" {% if session.appointment_details and session.appointment_details.exposure_type=='scratch' %}checked{% endif %}> <span class="ml-2">SCRATCH</span></label>
                                 </div>
                             </div>
 
                             <!-- Services Offered -->
-                            <div>
+                            <div class="services-offered-container">
                                 <h3 class="font-semibold text-lg mb-6">Services Offered</h3>
 
                                 <!-- Dynamic Services from Database -->
                                 {% if services %}
                                     <!-- Vaccination Services -->
                                     {% if vaccination_services %}
-                                    <div class="mb-6">
+                                    <div class="mb-6 vaccination-section">
                                         <h4 class="font-medium text-md mb-3 text-red-600 bg-red-50 p-2 rounded-md">
                                             <i class="fas fa-syringe mr-2"></i>Vaccination Services
                                         </h4>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {% for service in vaccination_services %}
                                             <label class="border border-gray-300 rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:bg-red-50 has-[:checked]:bg-red-50 has-[:checked]:border-red-400">
-                                                <input type="{{ 'checkbox' if session.appointment_details and session.appointment_details.appointment_type == 'vaccination' else 'radio' }}" name="service" value="{{ service.name }}" class="form-radio h-5 w-5 text-red-600 border-gray-400 focus:ring-red-500" {% if not (session.appointment_details and session.appointment_details.appointment_type == 'vaccination') %}required{% endif %}>
+                                                <input type="{{ 'checkbox' if session.appointment_details and session.appointment_details.appointment_type == 'vaccination' else 'radio' }}" name="service" value="{{ service.name }}" class="form-radio h-5 w-5 text-red-600 border-gray-400 focus:ring-red-500" {% if not (session.appointment_details and session.appointment_details.appointment_type == 'vaccination') %}required{% endif %} {% if service.name|lower in server_services %}checked{% endif %}>
                                                 <i class="fas fa-syringe fa-2x text-red-500"></i>
                                                 <div>
                                                     <p class="font-semibold">{{ service.name }}</p>
@@ -172,13 +173,13 @@
                                 {% else %}
                                     <!-- Fallback hardcoded services if no database services -->
                                     <!-- Vaccination Services -->
-                                    <div class="mb-6">
+                                    <div class="mb-6 vaccination-section">
                                         <h4 class="font-medium text-md mb-3 text-red-600 bg-red-50 p-2 rounded-md">
                                             <i class="fas fa-syringe mr-2"></i>Vaccination Services
                                         </h4>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <label class="border border-gray-300 rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:bg-red-50 has-[:checked]:bg-red-50 has-[:checked]:border-red-400">
-                                                <input type="{{ 'checkbox' if session.appointment_details and session.appointment_details.appointment_type == 'vaccination' else 'radio' }}" name="service" value="Anti-Rabies Vaccine" class="form-radio h-5 w-5 text-red-600 border-gray-400 focus:ring-red-500" {% if not (session.appointment_details and session.appointment_details.appointment_type == 'vaccination') %}required{% endif %}>
+                                                <input type="{{ 'checkbox' if session.appointment_details and session.appointment_details.appointment_type == 'vaccination' else 'radio' }}" name="service" value="Anti-Rabies Vaccine" class="form-radio h-5 w-5 text-red-600 border-gray-400 focus:ring-red-500" {% if not (session.appointment_details and session.appointment_details.appointment_type == 'vaccination') %}required{% endif %} {% if 'anti-rabies vaccine' in server_services or 'anti-rabies' in server_services %}checked{% endif %}>
                                                 <i class="fas fa-syringe fa-2x text-red-500"></i>
                                                 <div>
                                                     <p class="font-semibold">Anti-Rabies Vaccine</p>
@@ -186,7 +187,7 @@
                                                 </div>
                                             </label>
                                             <label class="border border-gray-300 rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:bg-red-50 has-[:checked]:bg-red-50 has-[:checked]:border-red-400">
-                                                <input type="{{ 'checkbox' if session.appointment_details and session.appointment_details.appointment_type == 'vaccination' else 'radio' }}" name="service" value="Tetanus Toxoid" class="form-radio h-5 w-5 text-red-600 border-gray-400 focus:ring-red-500" {% if not (session.appointment_details and session.appointment_details.appointment_type == 'vaccination') %}required{% endif %}>
+                                                <input type="{{ 'checkbox' if session.appointment_details and session.appointment_details.appointment_type == 'vaccination' else 'radio' }}" name="service" value="Tetanus Toxoid" class="form-radio h-5 w-5 text-red-600 border-gray-400 focus:ring-red-500" {% if not (session.appointment_details and session.appointment_details.appointment_type == 'vaccination') %}required{% endif %} {% if 'tetanus toxoid' in server_services or 'tetanus' in server_services %}checked{% endif %}>
                                                 <i class="fas fa-syringe fa-2x text-red-500"></i>
                                                 <div>
                                                     <p class="font-semibold">Tetanus Toxoid</p>
@@ -194,7 +195,7 @@
                                                 </div>
                                             </label>
                                             <label class="border border-gray-300 rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:bg-red-50 has-[:checked]:bg-red-50 has-[:checked]:border-red-400">
-                                                <input type="{{ 'checkbox' if session.appointment_details and session.appointment_details.appointment_type == 'vaccination' else 'radio' }}" name="service" value="ERIG Vaccine" class="form-radio h-5 w-5 text-red-600 border-gray-400 focus:ring-red-500" {% if not (session.appointment_details and session.appointment_details.appointment_type == 'vaccination') %}required{% endif %}>
+                                                <input type="{{ 'checkbox' if session.appointment_details and session.appointment_details.appointment_type == 'vaccination' else 'radio' }}" name="service" value="ERIG Vaccine" class="form-radio h-5 w-5 text-red-600 border-gray-400 focus:ring-red-500" {% if not (session.appointment_details and session.appointment_details.appointment_type == 'vaccination') %}required{% endif %} {% if 'erig vaccine' in server_services or 'erig' in server_services %}checked{% endif %}>
                                                 <i class="fas fa-syringe fa-2x text-red-500"></i>
                                                 <div>
                                                     <p class="font-semibold">ERIG Vaccine</p>
@@ -216,9 +217,9 @@
                                 <h3 class="font-semibold text-lg mb-2">Bite/Scratch Location <span class="text-red-500">*</span></h3>
                                 <p class="text-sm text-gray-600 mb-4">First select whether this was a bite or scratch above, then click on the body parts where you were bitten or scratched:</p>
 
-                                <!-- Hidden inputs to store selected body parts with exposure type -->
-                                <input type="hidden" id="body_diagram_selection" name="body_diagram_selection" value="">
-                                <input type="hidden" id="exposure_type" name="exposure_type" value="">
+                                <!-- Hidden inputs to store selected body parts with exposure type. Prefill from session so selections persist when going back -->
+                                <input type="hidden" id="body_diagram_selection" name="body_diagram_selection" value="{{ session.appointment_details.bite_location if session.appointment_details and session.appointment_details.bite_location else '' }}">
+                                <input type="hidden" id="exposure_type" name="exposure_type" value="{{ session.appointment_details.exposure_type if session.appointment_details and session.appointment_details.exposure_type else '' }}">
 
                                 <div class="body-diagram-container">
                                     <div class="body-diagram-wrapper" style="display: flex; flex-direction: row; gap: 2rem; align-items: flex-start; justify-content: center; flex-wrap: wrap;">
@@ -375,6 +376,7 @@
             // Read server-applied services
             const serverServicesRaw = document.getElementById('server_applied_services') ? document.getElementById('server_applied_services').value : '';
             const serverServices = serverServicesRaw ? serverServicesRaw.split(',').map(s => s.trim()) : [];
+            const normalizedServerServices = serverServices.map(s => (s || '').toLowerCase());
 
             // When appointment type is vaccination, mark mandatory vaccines. If radios for those vaccines exist, check them.
             try {
@@ -501,7 +503,34 @@
             // Initialize selected parts from hidden input if exists
             if (bodyDiagramInput && bodyDiagramInput.value) {
                 selectedParts = bodyDiagramInput.value.split(',').filter(part => part.trim());
+                // reflect selection on the SVG body diagram as well
+                selectedParts.forEach(p => {
+                    try {
+                        // elements sometimes have ids like 'head' or 'left-hand'
+                        const el = document.querySelector('[data-part="' + p + '"]') || document.getElementById(p);
+                        if (el) el.classList.add('selected');
+                    } catch (e) {}
+                });
                 updateSelectedParts();
+                // After rehydration, ensure ERIG vaccine state matches the selected parts (head -> ERIG checked).
+                try {
+                    const normalizedServerServices = serverServices.map(s => (s || '').toLowerCase());
+                    const hasHead = selectedParts.some(p => p.toLowerCase().includes('head'));
+                    const erigRadio = Array.from(document.querySelectorAll('input[name="service"]')).find(i => i.value && i.value.toLowerCase().includes('erig'));
+                    if (erigRadio) {
+                        const lab = erigRadio.closest('label');
+                        if (hasHead) {
+                            try { erigRadio.checked = true; } catch(e) {}
+                            if (lab) lab.classList.add('mandatory', 'service-card');
+                        } else {
+                            // Only uncheck if ERIG was NOT server-applied
+                            if (!normalizedServerServices.includes('erig') && !normalizedServerServices.includes('erig vaccine')) {
+                                try { erigRadio.checked = false; } catch(e) {}
+                                if (lab) lab.classList.remove('mandatory', 'service-card');
+                            }
+                        }
+                    }
+                } catch (e) { console.log('DEBUG: error rehydrating ERIG state', e); }
             }
 
             // Track exposure type selection
@@ -541,6 +570,34 @@
             if (checkedRadio) {
                 currentExposureType = checkedRadio.value;
                 exposureTypeInput.value = currentExposureType;
+            }
+
+            // If no radio was checked (but server provided an exposure via hidden input), use that
+            if (!checkedRadio && exposureTypeInput && exposureTypeInput.value) {
+                currentExposureType = exposureTypeInput.value;
+                // reflect on the radio input if present
+                try {
+                    const radio = document.querySelector('input[name="exposure_type"][value="' + currentExposureType + '"]');
+                    if (radio) radio.checked = true;
+                } catch (e) {}
+            }
+
+            // Initialize animal ETC input display and value based on any pre-checked animal radio
+            const checkedAnimal = document.querySelector('input[name="animal_type"]:checked');
+            if (checkedAnimal) {
+                if (checkedAnimal.value === 'etc') {
+                    if (etcInput) etcInput.style.display = 'block';
+                    if (etcTextInput) {
+                        etcTextInput.required = true;
+                        // If server provided an ETC text, prefill it
+                        try { etcTextInput.value = "{{ session.appointment_details.animal_etc_text if session.appointment_details and session.appointment_details.animal_etc_text else '' }}"; } catch(e) {}
+                    }
+                } else {
+                    if (etcInput) etcInput.style.display = 'none';
+                    if (etcTextInput) {
+                        etcTextInput.required = false;
+                    }
+                }
             }
 
                     bodyParts.forEach(part => {
@@ -592,7 +649,7 @@
                                 if (lab) lab.classList.add('mandatory', 'service-card');
                             } else {
                                 // Only remove mandatory mark and uncheck if it wasn't part of server-applied services
-                                if (!serverServices.includes('ERIG Vaccine') && !serverServices.includes('ERIG')) {
+                                if (!normalizedServerServices.includes('erig') && !normalizedServerServices.includes('erig vaccine')) {
                                     try { erigRadio.checked = false; } catch(e) {}
                                     if (lab) lab.classList.remove('mandatory', 'service-card');
                                 }

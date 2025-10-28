@@ -28,14 +28,103 @@
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
+            height: 'auto',
+            nowIndicator: true,
+            eventTimeFormat: { // like '14:30'
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            },
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
-            events: '/api/appointments' // This endpoint will be created next
+            events: '/api/appointments',
+            eventDidMount: function(info) {
+                try {
+                    // Build a helpful tooltip content
+                    var ep = info.event.extendedProps || {};
+                    var time = info.event.allDay ? '' : (ep.appointment_time ? ' ' + ep.appointment_time : '');
+                    var tooltip = (ep.patient_name || '') + (ep.service ? (' — ' + ep.service) : '') + time + (ep.status ? ('\nStatus: ' + ep.status) : '');
+                    // Set title and enable Bootstrap tooltip
+                    info.el.setAttribute('title', tooltip);
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                        // initialize tooltip on the element
+                        new bootstrap.Tooltip(info.el, {container: 'body', trigger: 'hover'});
+                    }
+                } catch(e) {
+                    // fail silently
+                    console.error('eventDidMount error', e);
+                }
+            },
+            eventClick: function(info) {
+                // If event has a URL (appointment view), open in new tab and prevent default nav
+                if (info.event.url) {
+                    info.jsEvent.preventDefault();
+                    window.open(info.event.url, '_blank');
+                }
+            }
+                        ,
+                        dateClick: function(info) {
+                                try {
+                                        var clickedDate = info.dateStr; // YYYY-MM-DD
+                                        // collect events for this date
+                                        var events = calendar.getEvents().filter(function(ev){
+                                                if (!ev.start) return false;
+                                                // Normalize to YYYY-MM-DD
+                                                var evDate = ev.startStr ? ev.startStr.split('T')[0] : '';
+                                                return evDate === clickedDate;
+                                        });
+
+                                        // Build modal content
+                                        var modalBody = document.getElementById('dateEventsModalBody');
+                                        modalBody.innerHTML = '';
+                                        if (events.length === 0) {
+                                                modalBody.innerHTML = '<div class="p-3 text-muted">No appointments on this date.</div>';
+                                        } else {
+                                                events.forEach(function(ev){
+                                                        var ep = ev.extendedProps || {};
+                                                        var item = document.createElement('div');
+                                                        item.className = 'd-flex justify-content-between align-items-start border-bottom py-2';
+                                                        var left = document.createElement('div');
+                                                        left.innerHTML = '<div class="fw-semibold">'+ (ep.patient_name || ev.title || 'Appointment') +'</div>' +
+                                                                                         '<div class="small text-muted">'+ (ep.service || '') + (ep.appointment_time ? (' • '+ep.appointment_time) : '') +'</div>';
+                                                        var right = document.createElement('div');
+                                                        var viewUrl = ev.url || (ev.extendedProps && ev.extendedProps.view_url) || '#';
+                                                        right.innerHTML = '<a class="btn btn-sm btn-primary" href="'+ viewUrl +'" target="_blank">View</a>';
+                                                        item.appendChild(left);
+                                                        item.appendChild(right);
+                                                        modalBody.appendChild(item);
+                                                });
+                                        }
+                                        var modalEl = document.getElementById('dateEventsModal');
+                                        var bsModal = new bootstrap.Modal(modalEl);
+                                        bsModal.show();
+                                } catch(e) {
+                                        console.error('dateClick handler error', e);
+                                }
+                        }
         });
         calendar.render();
     });
 </script>
+
+<!-- Modal: Appointments for clicked date -->
+<div class="modal fade" id="dateEventsModal" tabindex="-1" aria-labelledby="dateEventsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dateEventsModalLabel">Appointments</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="dateEventsModalBody">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

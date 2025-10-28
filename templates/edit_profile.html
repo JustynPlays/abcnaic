@@ -6,6 +6,7 @@
     <title>Edit Profile - Dr. Care Animal Bite Center Naic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/user_responsive.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -115,6 +116,10 @@
                 {% if edit_mode %}
                     <form action="{{ url_for('edit_profile') }}" method="POST">
                         <div class="mb-4">
+                            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                            <input type="text" id="username" name="username" value="{{ current_user.username if (current_user is defined and current_user.username) else (session.user_username if session.user_username is defined else '') }}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm" readonly>
+                        </div>
+                        <div class="mb-4">
                             <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
                             <input type="text" id="name" name="name" value="{{ current_user.name }}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm">
                         </div>
@@ -154,6 +159,10 @@
                     </form>
                 {% else %}
                     <div class="bg-white p-6 rounded-md shadow-sm border border-gray-200">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700">Username</label>
+                            <p class="mt-1 text-gray-800">{{ current_user.username if (current_user is defined and current_user.username) else (session.user_username if session.user_username is defined and session.user_username else (session.user_name | default('—'))) }}</p>
+                        </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700">Name</label>
                             <p class="mt-1 text-gray-800">{{ current_user.name }}</p>

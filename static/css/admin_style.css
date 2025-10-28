@@ -28,25 +28,45 @@ body {
     margin-left: -250px;
 }
 
+/* Sidebar header: filled background and inverted text for stronger branding */
 #sidebar .sidebar-header {
     padding: 20px;
-    background: #ffffff;
+    background: linear-gradient(180deg,#e84118 0%, #c23114 100%);
     text-align: center;
-    border-bottom: 2px solid #d0d0d0;
+    border-bottom: 0;
+    color: #fff;
 }
 
 #sidebar .sidebar-header h3 {
-    color: #e84118;
+    color: #ffffff;
     margin-bottom: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: 700;
 }
 
-/* Make the text next to the sidebar logo smaller */
+/* Make the text next to the sidebar logo a bit smaller and white */
 #sidebar .sidebar-header h3 span {
     font-size: 0.95rem;
     font-weight: 600;
     line-height: 1.2;
+    color: rgba(255,255,255,0.95);
+}
+
+#sidebar .sidebar-header img {
+    /* keep original image colors so logos with their own colors render correctly */
+    max-height: 36px;
+}
+
+/* Optional wrapper to give a circular colored background behind logos that need contrast */
+#sidebar .sidebar-header .logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08); /* subtle light ring */
+    margin-right: 8px;
 }
 
 #sidebar ul.components {
@@ -77,6 +97,11 @@ body {
     color: #e84118;
     background: #f8f9fa;
     border-left: 3px solid #e84118;
+}
+
+/* Ensure nested active links and the 'Content' item stand out reliably */
+#sidebar ul.components li.active a {
+    font-weight: 600;
 }
 
 #sidebar ul li a i {
@@ -137,4 +162,46 @@ body {
     font-size: .8rem;
     letter-spacing: .04em;
     color: #858796;
+}
+
+/* Compact & responsive appointment cards */
+.weekly-grid .card {
+    padding: .5rem;
+    margin-bottom: .5rem;
+    font-size: .92rem;
+    line-height: 1.15;
+    border-radius: .35rem;
+}
+
+.weekly-grid .card .fw-semibold {
+    font-size: .95rem;
+}
+
+.list-group .list-group-item.app-compact {
+    padding: .5rem .75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+.list-group .list-group-item.app-compact .small {
+    font-size: .78rem;
+    color: #6c757d;
+}
+
+/* Reduce padding on small screens to keep cards readable */
+@media (max-width: 768px) {
+    .weekly-grid .card { min-width: 140px; flex: 0 0 140px; }
+    #weekly-overview .weekly-grid { gap: 8px; }
+    .list-group .list-group-item.app-compact { padding: .45rem .5rem; }
+}
+
+
+
+/* Slight visual differentiation for appointment badges inside cards */
+.weekly-grid .card .badge {
+    font-size: .65rem;
+    padding: .25rem .4rem;
 }

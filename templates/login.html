@@ -182,6 +182,60 @@
         .flash-messages {
             display: none !important;
         }
+
+        /* Mobile responsive navbar */
+        @media (max-width: 768px) {
+            .brand-chip {
+                font-size: 0.65rem !important;
+                padding: 0.2rem 0.4rem !important;
+                max-width: calc(100vw - 100px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .navbar-brand {
+                display: flex;
+                align-items: center;
+                max-width: calc(100vw - 40px);
+            }
+            
+            .navbar-brand img {
+                height: 32px !important;
+                margin-right: 6px !important;
+            }
+            
+            .navbar .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .brand-chip {
+                font-size: 0.6rem !important;
+                padding: 0.15rem 0.35rem !important;
+                max-width: calc(100vw - 80px);
+            }
+            
+            .navbar-brand img {
+                height: 28px !important;
+                margin-right: 5px !important;
+            }
+        }
+
+        @media (max-width: 375px) {
+            .brand-chip {
+                font-size: 0.55rem !important;
+                padding: 0.15rem 0.3rem !important;
+                max-width: calc(100vw - 70px);
+            }
+            
+            .navbar-brand img {
+                height: 24px !important;
+                margin-right: 4px !important;
+            }
+        }
     </style>
 </head>
 <body>

@@ -1769,6 +1769,56 @@ def init_routes(app, get_db, mail, serializer):
 
         # Ensure types are JSON serializable (sqlite returns numbers/strings)
         return jsonify({'success': True, 'booking': booking})
+
+    @app.route('/my-bookings/cancel/<int:booking_id>', methods=['POST'])
+    @login_required
+    def cancel_my_booking(booking_id):
+        """Allow a logged-in user to cancel their own booking via AJAX."""
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Authentication required.'}), 401
+
+        conn = get_db()
+        c = conn.cursor()
+        # Ensure the booking exists and belongs to the current user
+        c.execute('SELECT id, status, user_id, patient_phone, appointment_date, appointment_time FROM appointments WHERE id = ? AND user_id = ?', (booking_id, user_id))
+        row = c.fetchone()
+        if not row:
+            conn.close()
+            return jsonify({'success': False, 'message': 'Booking not found or access denied.'}), 404
+
+        current_status = row['status'] if isinstance(row, dict) else row[1]
+        # Prevent cancelling completed or already-cancelled appointments
+        if current_status in ('completed', 'cancelled'):
+            conn.close()
+            return jsonify({'success': False, 'message': 'This appointment cannot be cancelled.'}), 400
+
+        try:
+            # Update status to cancelled
+            c.execute('UPDATE appointments SET status = ?, updated_at = ? WHERE id = ?', ('cancelled', datetime.now().isoformat(), booking_id))
+            conn.commit()
+
+            # Optionally send SMS notification for cancellation if patient_phone exists
+            try:
+                patient_phone = row['patient_phone'] if isinstance(row, dict) else row[3]
+                if patient_phone:
+                    try:
+                        from utils.sms import send_message
+                        msg = f"Your appointment on {row['appointment_date'] if isinstance(row, dict) else row[4]} at {row['appointment_time'] if isinstance(row, dict) else row[5]} has been cancelled."
+                        send_message(patient_phone, msg)
+                    except Exception:
+                        # don't fail the cancellation if SMS sending fails
+                        pass
+            except Exception:
+                pass
+
+            conn.close()
+            return jsonify({'success': True, 'message': 'Appointment cancelled successfully.'})
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            current_app.logger.error(f'Error cancelling appointment {booking_id} for user {user_id}: {e}')
+            return jsonify({'success': False, 'message': 'Failed to cancel appointment.'}), 500
     
     @app.route('/admin/dashboard')
     @admin_required
@@ -1936,6 +1986,12 @@ def init_routes(app, get_db, mail, serializer):
             chart_data['weekly_sales_labels'] = []
             chart_data['weekly_sales_values'] = []
 
+        # Consolidate client-side dashboard payload to avoid multiple scattered template injections
+        dashboard_payload = {
+            'chart_data': chart_data,
+            'recent_appointments': recent_appointments
+        }
+
         conn.close()
 
         return render_template('admin_dashboard.html',
@@ -1948,7 +2004,8 @@ def init_routes(app, get_db, mail, serializer):
                              total_appointments=total_appointments,
                              approved_appointments=approved_appointments,
                              pending_appointments=pending_appointments,
-                             recent_appointments=recent_appointments)
+                             recent_appointments=recent_appointments,
+                             dashboard_payload=dashboard_payload)
     
     @app.route('/admin/users')
     @admin_required
