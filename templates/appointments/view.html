@@ -26,8 +26,17 @@
         <div class="col-lg-8">
             <!-- Appointment Details Card -->
             <div id="appointment-printable" class="card shadow mb-4">
-                <div class="card-header py-3">
+                <div class="card-header py-3 d-flex align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold" style="color: #e84118;">Appointment Information</h6>
+                    <div>
+                        {% if appointment.status in ['completed', 'cancelled'] %}
+                        <form method="post" action="{{ url_for('admin_archive_appointment', appointment_id=appointment.id) }}" onsubmit="return confirm('Archive this appointment? This will remove it from the active list and store a snapshot.');" style="display:inline-block;">
+                            <button type="submit" class="btn btn-sm btn-secondary">
+                                <i class="fas fa-archive me-1"></i> Archive
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -169,6 +178,13 @@
                         <button id="smsBtn" type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#smsModal">
                             <i class="fas fa-sms me-2"></i>Send SMS
                         </button>
+                        {% if appointment.status in ['completed', 'cancelled'] %}
+                        <form method="post" action="{{ url_for('admin_archive_appointment', appointment_id=appointment.id) }}" onsubmit="return confirm('Archive this appointment? This will remove it from the active list and store a snapshot.');" class="d-grid">
+                            <button class="btn btn-outline-danger" type="submit">
+                                <i class="fas fa-archive me-2"></i>Archive
+                            </button>
+                        </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>

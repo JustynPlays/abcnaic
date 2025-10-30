@@ -90,6 +90,35 @@
         .card-wrap { max-width: 1000px; margin: 40px auto; }
         .card { border: 8px solid #ddd; padding: 18px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
         .left-panel { background:#c71f1f; color:white; padding:26px; }
+        /* Make instructions use available space and flow into columns on wider cards */
+        .left-panel .instructions-list {
+            /* Use compact font size and visible bullets */
+            font-size: 0.95rem; /* smaller, compact */
+            line-height: 1.45; /* comfortable spacing */
+            color: #fff;
+            margin: 0;
+            padding: 0 0 0 1rem; /* indent for outside/inside markers */
+            list-style-type: disc;
+            list-style-position: inside;
+            display: block;
+            /* Let the list expand to take available vertical space so there's no dead space */
+            flex: 1 1 auto;
+            height: auto;
+            /* Single column: disable multi-column splitting */
+            column-count: 1;
+            column-gap: 0;
+        }
+        .left-panel .instructions-list li { margin-bottom: 0.6rem; color: #fff; }
+        /* make the marker (bullet) white and slightly larger for visibility */
+        .left-panel .instructions-list li::marker { color: #fff; font-size: 1.05rem; }
+        /* On medium and larger screens use two columns so the text fills the whole left panel */
+        /* Force single column layout on all widths (no multi-column) */
+        @media (min-width: 640px) {
+            .left-panel .instructions-list { column-count: 1; }
+        }
+
+        /* Ensure the bottom logos stay anchored to the bottom of the left panel */
+        .left-panel > .mt-6 { margin-top: auto; }
         .logo-row { display:flex; align-items:center; justify-content:space-between; }
         .logo-row img { height:56px; }
         .field-line { border-bottom:1px dashed #ddd; height:1.4rem; }
@@ -145,16 +174,16 @@
                         <!-- (top logo removed - replaced at bottom) -->
 
                         <!-- MGA DAPAT TANDAAN Title -->
-                        <h2 class="text-2xl font-bold mb-4 text-white text-center">MGA DAPAT TANDAAN</h2>
+                        <h2 class="text-2xl font-bold mb-2 text-white text-center">MGA DAPAT TANDAAN</h2>
 
                         <!-- Instructions list -->
-                        <ul class="space-y-2 text-xs leading-tight text-white font-medium flex-grow">
-                            <li>• BAWAL uminom ng alak ng 30 days.</li>
-                            <li>• BAWAL kumain ng manok, itlog, hipon, bagoong, patis at malalansang pagkain.</li>
-                            <li>• Kung turturukan ng ERIG, iwasan ang Frozen Foods, fishy-smelling foods, canned foods, noodles, chocolate peanut and junk foods.</li>
-                            <li>• Panatilihing tuyo at iwasang galawin ang sugat sa loob ng 8 oras.</li>
-                            <li>• Magpapakuntila kung lumalala ang pamamaga, pamamaga o kirot.</li>
-                            <li>• Maaaring maging allergic sa paracetamol; lamang allergy sa paracetamol.</li>
+                        <ul class="instructions-list space-y-2 text-white font-normal flex-grow">
+                            <li>BAWAL uminom ng alak ng 30 days</li>
+                            <li>BAWAL kumain ng manok, itlog, hipon, bagoong, patis at malalansang pagkain.</li>
+                            <li>Kung tutulukan ng ERIG, iwasan ang frozen foods, fishy‑smelling foods, canned foods, noodles, chocolate, peanut at junk foods.</li>
+                            <li>Panatilihing tuyo at iwasang galawin ang sugat sa loob ng 8 oras. Pagkatapos hugasan ang sugat ng sabon at tubig at lagyan ng Betadine kapag natuyo. Takpan ang sugat gamit ang gasa sa loob ng 24–48 oras.</li>
+                            <li>Magpakonsulta kung lumalala ang pamumula, pamamaga o kirot, kung magkaroon ng nana ang sugat, o kung may mabahong amoy ang sugat.</li>
+                            <li>Maaring mamaga ang lugar na pinag­turukan; maaari itong i‑warm compress. Kapag may lagnat, maaaring uminom ng paracetamol kung walang allergy sa paracetamol.</li>
                         </ul>
 
                         <!-- Bottom clinic logos and text (logoPalatandaan + hand logo) -->

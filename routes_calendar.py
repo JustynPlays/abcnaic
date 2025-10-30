@@ -18,7 +18,29 @@ def init_calendar_routes(app, get_db):
     @admin_required
     def view_calendar():
         """Renders the main calendar view."""
-        return render_template('calendar/view.html')
+        # Provide recent appointments payload (used by the weekly overview widget)
+        conn = get_db()
+        c = conn.cursor()
+        try:
+            c.execute('''
+                SELECT a.*, u.name as user_name
+                FROM appointments a
+                LEFT JOIN users u ON a.user_id = u.id
+                WHERE a.status != 'cancelled'
+                ORDER BY a.appointment_date DESC, a.appointment_time DESC
+                LIMIT 50
+            ''')
+            recent_appointments = [dict(row) for row in c.fetchall()]
+        except Exception:
+            recent_appointments = []
+        finally:
+            conn.close()
+
+        dashboard_payload = {
+            'recent_appointments': recent_appointments
+        }
+
+        return render_template('calendar/view.html', dashboard_payload=dashboard_payload)
 
     @calendar_bp.route('/api/appointments')
     @admin_required

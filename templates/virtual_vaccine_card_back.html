@@ -97,6 +97,19 @@
     .pill-filled { display:inline-block; background:#dc2626; border-radius:999px; border:2px solid #dc2626; padding:5px 16px; color:#fff; font-weight:700; font-size:11px; text-transform:uppercase; }
     /* left-specific uniform pill sizing */
     .pill-left { min-width: 220px; max-width: 260px; display:inline-block; text-align:center; }
+    /* Make instructions use available space and flow into columns on wider cards (back side) */
+    .card .left-instructions {
+        font-size: 0.95rem;
+        line-height: 1.35;
+        color: #000;
+        margin: 0;
+        padding: 0;
+        column-gap: 2rem;
+        column-fill: auto;
+    }
+    @media (min-width: 640px) {
+        .card .left-instructions { column-count: 2; }
+    }
         .table-cell { border:1px solid #aaa; padding:6px; }
         /* radio group centering */
         .radio-group { display:flex; justify-content:center; gap:18px; align-items:center; }

@@ -64,10 +64,11 @@ def init_routes(app, get_db, mail, serializer):
     app.mail = mail
     app.serializer = serializer
     
-    # Admin credentials (in a real app, store these in environment variables or a config file)
+    # Admin credentials (read from environment if provided; fallback to defaults)
+    import os
     ADMIN_CREDENTIALS = {
-        'username': 'admin',
-        'password': 'admin123'  # In production, use environment variables and hash the password
+        'username': os.getenv('ABC_ADMIN_USERNAME', 'admin'),
+        'password': os.getenv('ABC_ADMIN_PASSWORD', 'admin123')
     }
     
     # Session key for admin
@@ -824,15 +825,26 @@ def init_routes(app, get_db, mail, serializer):
             else:
                 # fallback: only email
                 c.execute('SELECT * FROM users WHERE email = ?', (identifier,))
+
             user = c.fetchone()
             conn.close()
 
-            if user and check_password_hash(user['password_hash'], password):
+            # Safely verify password and set session values without assuming schema
+            try:
+                pwd_hash = user['password_hash'] if user and 'password_hash' in user else None
+            except Exception:
+                pwd_hash = None
+
+            if user and pwd_hash and check_password_hash(pwd_hash, password):
                 # Allow login immediately without email verification
-                session['user_id'] = user['id']
-                session['user_name'] = user['name']
-                session['user_username'] = user['username']  # Store username in session
-                session['user_email'] = user['email']
+                session['user_id'] = user.get('id')
+                session['user_name'] = user.get('name') or user.get('full_name') or ''
+                # Only set username if present in the row
+                if 'username' in (user.keys() if hasattr(user, 'keys') else []):
+                    session['user_username'] = user.get('username')
+                else:
+                    session['user_username'] = None
+                session['user_email'] = user.get('email')
 
                 # Update last login time
                 conn = get_db()
@@ -2560,6 +2572,169 @@ def init_routes(app, get_db, mail, serializer):
             conn.close()
 
         return redirect(url_for('admin_archived_users'))
+
+    @app.route('/admin/appointments/<int:appointment_id>/archive', methods=['POST'])
+    @admin_required
+    def admin_archive_appointment(appointment_id):
+        conn = get_db()
+        c = conn.cursor()
+        try:
+            # Fetch appointment
+            c.execute('SELECT * FROM appointments WHERE id = ?', (appointment_id,))
+            appt = c.fetchone()
+            if not appt:
+                flash('Appointment not found', 'danger')
+                return redirect(url_for('appointments.list_appointments'))
+
+            appt_dict = dict(appt)
+
+            # Ensure archive table exists
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS archived_appointments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    original_appointment_id INTEGER,
+                    patient_name TEXT,
+                    user_id INTEGER,
+                    service TEXT,
+                    appointment_date TEXT,
+                    appointment_time TEXT,
+                    status TEXT,
+                    archived_at TEXT,
+                    data TEXT
+                )
+            ''')
+
+            archived_at = datetime.now().isoformat()
+            snapshot = json.dumps(appt_dict, default=str)
+            c.execute('''
+                INSERT INTO archived_appointments (original_appointment_id, patient_name, user_id, service, appointment_date, appointment_time, status, archived_at, data)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                appt_dict.get('id'),
+                appt_dict.get('patient_name'),
+                appt_dict.get('user_id'),
+                appt_dict.get('service'),
+                appt_dict.get('appointment_date'),
+                appt_dict.get('appointment_time'),
+                appt_dict.get('status'),
+                archived_at,
+                snapshot
+            ))
+
+            # Delete original appointment
+            c.execute('DELETE FROM appointments WHERE id = ?', (appointment_id,))
+            conn.commit()
+            flash('Appointment archived successfully', 'success')
+        except Exception as e:
+            conn.rollback()
+            flash('Error archiving appointment', 'danger')
+            current_app.logger.error(f'Error archiving appointment {appointment_id}: {str(e)}')
+        finally:
+            conn.close()
+
+        return redirect(url_for('appointments.list_appointments'))
+
+    @app.route('/admin/archived-appointments')
+    @admin_required
+    def admin_archived_appointments():
+        conn = get_db()
+        c = conn.cursor()
+        # Check if archived_appointments table exists; if not, return empty list
+        c.execute("PRAGMA table_info(archived_appointments)")
+        cols = c.fetchall()
+        rows = []
+        if cols:
+            search = request.args.get('search', '').strip()
+            if search:
+                params = [f'%{search}%']
+                q = "SELECT id, original_appointment_id, patient_name, appointment_date, appointment_time, status, archived_at, data FROM archived_appointments WHERE patient_name LIKE ? OR data LIKE ? ORDER BY archived_at DESC"
+                params.append(f'%{search}%')
+                c.execute(q, params)
+            else:
+                c.execute("SELECT id, original_appointment_id, patient_name, appointment_date, appointment_time, status, archived_at, data FROM archived_appointments ORDER BY archived_at DESC")
+            rows = [dict(r) for r in c.fetchall()]
+        conn.close()
+        return render_template('admin_archived_appointments.html', archived=rows, search=request.args.get('search', ''))
+
+    @app.route('/admin/archived-appointments/<int:archived_id>/restore', methods=['POST'])
+    @admin_required
+    def admin_restore_archived_appointment(archived_id):
+        conn = get_db()
+        c = conn.cursor()
+        try:
+            c.execute("PRAGMA table_info(archived_appointments)")
+            if not c.fetchall():
+                flash('No archived appointments exist.', 'danger')
+                return redirect(url_for('admin_archived_appointments'))
+
+            c.execute('SELECT * FROM archived_appointments WHERE id = ?', (archived_id,))
+            a = c.fetchone()
+            if not a:
+                flash('Archived appointment not found', 'danger')
+                return redirect(url_for('admin_archived_appointments'))
+
+            a_dict = dict(a)
+            data = a_dict.get('data')
+            try:
+                snapshot = json.loads(data) if data else {}
+            except Exception:
+                snapshot = {}
+
+            # Get appointments table columns
+            c.execute('PRAGMA table_info(appointments)')
+            cols = [r[1] for r in c.fetchall()]
+            insert_cols = [col for col in cols if col != 'id']
+            values = []
+            for col in insert_cols:
+                values.append(snapshot.get(col))
+
+            if not insert_cols:
+                flash('Unable to restore appointment: target table schema not found', 'danger')
+                return redirect(url_for('admin_archived_appointments'))
+
+            placeholders = ','.join(['?'] * len(insert_cols))
+            col_list = ','.join(insert_cols)
+            c.execute(f'INSERT INTO appointments ({col_list}) VALUES ({placeholders})', values)
+
+            # Remove archive entry after successful restore
+            c.execute('DELETE FROM archived_appointments WHERE id = ?', (archived_id,))
+            conn.commit()
+            flash('Archived appointment restored successfully', 'success')
+        except Exception as e:
+            conn.rollback()
+            flash('Error restoring archived appointment', 'danger')
+            current_app.logger.error(f'Error restoring archived appointment {archived_id}: {str(e)}')
+        finally:
+            conn.close()
+
+        return redirect(url_for('admin_archived_appointments'))
+
+    @app.route('/admin/archived-appointments/<int:archived_id>/delete', methods=['POST'])
+    @admin_required
+    def admin_delete_archived_appointment(archived_id):
+        conn = get_db()
+        c = conn.cursor()
+        try:
+            c.execute("PRAGMA table_info(archived_appointments)")
+            if not c.fetchall():
+                flash('No archived appointments exist.', 'danger')
+                return redirect(url_for('admin_archived_appointments'))
+
+            c.execute('SELECT id FROM archived_appointments WHERE id = ?', (archived_id,))
+            if not c.fetchone():
+                flash('Archived appointment not found', 'danger')
+                return redirect(url_for('admin_archived_appointments'))
+            c.execute('DELETE FROM archived_appointments WHERE id = ?', (archived_id,))
+            conn.commit()
+            flash('Archived record deleted permanently', 'success')
+        except Exception as e:
+            conn.rollback()
+            flash('Error deleting archived record', 'danger')
+            current_app.logger.error(f'Error deleting archived appointment {archived_id}: {str(e)}')
+        finally:
+            conn.close()
+
+        return redirect(url_for('admin_archived_appointments'))
 
     @app.route('/logout')
     def logout():

@@ -41,8 +41,16 @@
                         <a href="{{ url_for('calendar_bp.view_calendar') }}"><i class="fas fa-calendar-alt"></i> Calendar</a>
                     </li>
                                     <li class="{% if ep.startswith('appointments') or 'appointments' in p %}active{% endif %}">
-                        <a href="{{ url_for('appointments.list_appointments') }}"><i class="fas fa-calendar-check"></i> Appointments</a>
-                    </li>
+                                        <a href="{{ url_for('appointments.list_appointments') }}"><i class="fas fa-calendar-check"></i> Appointments</a>
+                                        {% set in_appointments = ep.startswith('appointments') or 'appointments' in p %}
+                                        {% if in_appointments %}
+                                        <ul class="list-unstyled ms-3 mt-2">
+                                            <li class="{% if ep == 'admin_archived_appointments' or p.endswith('/archived-appointments') %}active{% endif %}">
+                                                <a href="{{ url_for('admin_archived_appointments') }}"><i class="fas fa-archive"></i> Archived Appointments</a>
+                                            </li>
+                                        </ul>
+                                        {% endif %}
+                                    </li>
                 {# Customers menu: show Archived Users as a nested item only when inside the customers module #}
                 {% set in_customers = ep in ['admin_users', 'admin_view_user', 'admin_archived_users'] or 'user' in ep or 'users' in p %}
                 <li class="{% if in_customers %}active{% endif %}">

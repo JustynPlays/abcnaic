@@ -327,16 +327,25 @@
                                             </svg>
                                         </div>
                                         <div class="selected-parts" style="min-width: 320px; max-width: 400px; flex-shrink: 0; background: #f8f9fa; border-radius: 8px; padding: 1rem; border: 1px solid #e9ecef;">
-                                            <h4 style="color: #b20000; font-weight: 600; margin: 0 0 1rem 0; font-size: 1.1rem;">Selected Areas</h4>
-                                            <div id="selected-body-parts">
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px;">
+                                                <h4 style="color: #b20000; font-weight: 600; margin: 0; font-size: 1.05rem;">Selected Areas</h4>
+                                                <div style="display:flex; gap:8px; align-items:center;">
+                                                    <button type="button" id="toggle-selected-parts" class="bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded-md shadow-sm hover:bg-gray-50" aria-expanded="false">Show Selected (0)</button>
+                                                </div>
+                                            </div>
+
+                                            <div id="selected-body-parts" style="display: none;">
                                                 <div class="text-center py-4">
                                                     <p class="text-muted mb-2">No body parts selected</p>
                                                     <small class="text-gray-500">Click on the body diagram to select where you were bitten or scratched</small>
                                                 </div>
                                             </div>
-                                            <button type="button" id="clear-body-parts" class="clear-button">
-                                                Clear All Selections
-                                            </button>
+
+                                            <div id="selected-parts-controls" style="display: none; margin-top:8px;">
+                                                <button type="button" id="clear-body-parts" class="clear-button bg-white border border-gray-300 px-3 py-2 rounded-md hover:bg-gray-50">
+                                                    Clear All Selections
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -363,6 +372,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const bodyParts = document.querySelectorAll('.body-part');
             const selectedPartsContainer = document.getElementById('selected-body-parts');
+            const toggleSelectedBtn = document.getElementById('toggle-selected-parts');
+            const selectedPartsControls = document.getElementById('selected-parts-controls');
             const bodyDiagramInput = document.getElementById('body_diagram_selection');
             const exposureTypeInput = document.getElementById('exposure_type');
             const exposureRadios = document.querySelectorAll('input[name="exposure_type"]');
@@ -755,6 +766,24 @@
                         itemContainer.appendChild(details);
                         selectedPartsContainer.appendChild(itemContainer);
                     });
+                    // Update toggle button text/count and visibility of controls
+                    try {
+                        if (toggleSelectedBtn) {
+                            const expanded = toggleSelectedBtn.getAttribute('aria-expanded') === 'true';
+                            // Update label with count
+                            toggleSelectedBtn.textContent = expanded ? `Hide Selected (${selectedParts.length})` : `Show Selected (${selectedParts.length})`;
+                            if (selectedParts.length === 0) {
+                                if (selectedPartsContainer) selectedPartsContainer.style.display = 'none';
+                                if (selectedPartsControls) selectedPartsControls.style.display = 'none';
+                                toggleSelectedBtn.setAttribute('aria-expanded', 'false');
+                            } else {
+                                if (expanded) {
+                                    if (selectedPartsContainer) selectedPartsContainer.style.display = '';
+                                    if (selectedPartsControls) selectedPartsControls.style.display = '';
+                                }
+                            }
+                        }
+                    } catch (e) { console.log('DEBUG: error updating toggle label', e); }
                 }
             }
 
@@ -762,6 +791,26 @@
                 return partName.split('-').map(word =>
                     word.charAt(0).toUpperCase() + word.slice(1)
                 ).join(' ');
+            }
+
+            // Toggle selected parts visibility
+            if (toggleSelectedBtn) {
+                toggleSelectedBtn.addEventListener('click', function() {
+                    const expanded = this.getAttribute('aria-expanded') === 'true';
+                    if (expanded) {
+                        // hide
+                        if (selectedPartsContainer) selectedPartsContainer.style.display = 'none';
+                        if (selectedPartsControls) selectedPartsControls.style.display = 'none';
+                        this.setAttribute('aria-expanded', 'false');
+                        this.textContent = `Show Selected (${selectedParts.length})`;
+                    } else {
+                        // show
+                        if (selectedPartsContainer) selectedPartsContainer.style.display = '';
+                        if (selectedPartsControls) selectedPartsControls.style.display = '';
+                        this.setAttribute('aria-expanded', 'true');
+                        this.textContent = `Hide Selected (${selectedParts.length})`;
+                    }
+                });
             }
 
             // Clear all selections
@@ -775,6 +824,13 @@
                     }
                     updateSelectedParts();
                     validateForm();
+                    // hide the content when cleared
+                    if (selectedPartsContainer) selectedPartsContainer.style.display = 'none';
+                    if (selectedPartsControls) selectedPartsControls.style.display = 'none';
+                    if (toggleSelectedBtn) {
+                        toggleSelectedBtn.setAttribute('aria-expanded', 'false');
+                        toggleSelectedBtn.textContent = `Show Selected (0)`;
+                    }
                 });
             }
 
