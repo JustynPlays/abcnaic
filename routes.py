@@ -64,11 +64,10 @@ def init_routes(app, get_db, mail, serializer):
     app.mail = mail
     app.serializer = serializer
     
-    # Admin credentials (read from environment if provided; fallback to defaults)
-    import os
+    # Admin credentials (in a real app, store these in environment variables or a config file)
     ADMIN_CREDENTIALS = {
-        'username': os.getenv('ABC_ADMIN_USERNAME', 'admin'),
-        'password': os.getenv('ABC_ADMIN_PASSWORD', 'admin123')
+        'username': 'admin',
+        'password': 'admin123'  # In production, use environment variables and hash the password
     }
     
     # Session key for admin
@@ -825,26 +824,15 @@ def init_routes(app, get_db, mail, serializer):
             else:
                 # fallback: only email
                 c.execute('SELECT * FROM users WHERE email = ?', (identifier,))
-
             user = c.fetchone()
             conn.close()
 
-            # Safely verify password and set session values without assuming schema
-            try:
-                pwd_hash = user['password_hash'] if user and 'password_hash' in user else None
-            except Exception:
-                pwd_hash = None
-
-            if user and pwd_hash and check_password_hash(pwd_hash, password):
+            if user and check_password_hash(user['password_hash'], password):
                 # Allow login immediately without email verification
-                session['user_id'] = user.get('id')
-                session['user_name'] = user.get('name') or user.get('full_name') or ''
-                # Only set username if present in the row
-                if 'username' in (user.keys() if hasattr(user, 'keys') else []):
-                    session['user_username'] = user.get('username')
-                else:
-                    session['user_username'] = None
-                session['user_email'] = user.get('email')
+                session['user_id'] = user['id']
+                session['user_name'] = user['name']
+                session['user_username'] = user['username']  # Store username in session
+                session['user_email'] = user['email']
 
                 # Update last login time
                 conn = get_db()
